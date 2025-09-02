@@ -49,13 +49,28 @@ public:
       return &addressInfosSize;
     }
 
+    int getFd() const {
+      return fd;
+    }
+
+    void closeConnection() {
+      close(fd);
+      cout << "Client disconnected successfuly!" << endl;
+    }
+
     ~Client() {};
 };
 
-int main() {
+int main(int ac, char **av) {
+
+    if (ac != 3) {
+      cerr << "Usage: ./server <port> <password>" << endl;
+      return 1;
+    }
 
     sockaddr_in infos;
-    int port = PORT;
+    int port = atoi(av[1]);
+    string password = av[2];
 
     infos.sin_family = AF_INET;
     infos.sin_port = htons(port);
@@ -63,75 +78,80 @@ int main() {
 
     int socketFd;
     uint64_t infosSize = sizeof(infos);
-    int tries = 0;
 
-    while (true) {
-      socketFd = socket(infos.sin_family, SOCK_STREAM, 0);
+    socketFd = socket(infos.sin_family, SOCK_STREAM, 0);
 
-      if (socketFd < 0) {
-          cout << "Error creating the socket!" << endl;
-          return 1;
-      }
+    if (socketFd < 0) {
+        cout << "Error creating the socket!" << endl;
+        return 1;
+    }
 
-      if (bind(socketFd, reinterpret_cast<const struct sockaddr*>(&infos), infosSize) < 0) {
-          cerr << "Error binding, changing the port to " << ++port << endl;
-          close(socketFd);
-          infos.sin_port = htons(port);
-
-          if (tries >= MAX_BIND_TRIES) {
-            cerr << "Done retrying" << endl;
-            return 1; 
-
-          } else {
-            sleep(1);
-          }
-          
-          tries++;
-      } else {
-        cout << "Connection estabilated at port: " << port << endl;
-        break ;
-      }
+    if (bind(socketFd, reinterpret_cast<const struct sockaddr*>(&infos), infosSize) < 0) {
+        cerr << "Error binding, changing the port to " << ++port << endl;
+        close(socketFd);
+        return 1;
     }
 
     if (listen(socketFd, SOMAXCONN) < 0) {
         cerr << "Error listening to clients!" << endl;
+        close(socketFd);
         return 1;
     }
 
-    cout << "Server is running successfuly on port 8080!" << endl;
+    cout << "Server is running successfuly on port: " << port << endl;
 
     try {
 
-      if (fork() == 0) {
-        // create a new client over here
-        Client user(8082);
-        user.connectToServer(infos, infosSize);
+      // if (fork() == 0) {
+      //   // Client's scope
+      //   Client user(8082);
+      //   user.connectToServer(infos, infosSize);
 
-        //now lets try to send something and get it from the server
+      //   //now lets try to send something and get it from the server
+      //   string message = "Hello from the client!";
 
-        return 0;
+      //   size_t sent_bytes = write(user.getFd(), message.c_str(), message.size());
 
-      } else {
+      //   if (sent_bytes < 0) {
+      //     throw std::runtime_error("Failed to send the message to the server!");
+      //   }
 
-        sockaddr_in client_add;
-        size_t client_add_size;
+        
 
-        // now phase to accept the clinet from the server:
-        int clientFd = accept(socketFd, reinterpret_cast<struct sockaddr *>(&client_add),
-            reinterpret_cast<socklen_t *>(&client_add_size));
+      //   user.closeConnection();
+      //   return 0;
 
-        if (clientFd < 0) {
-          throw std::runtime_error("Failed to accept the connection of the user!");
-        }
+      // } else {
 
-        cout << "Client accepted successfully from the server!" << endl;
+      sockaddr_in client_add;
+      size_t client_add_size = sizeof(client_add);
 
+      // now phase to accept the clinet from the server:
+      int clientFd = accept(socketFd, reinterpret_cast<struct sockaddr *>(&client_add),
+          reinterpret_cast<socklen_t *>(&client_add_size));
+
+      if (clientFd < 0) {
+        throw std::runtime_error("Failed to accept the connection of the user!");
       }
+
+      cout << "Client accepted successfully from the server!" << endl;
+
+      char buff[1024] = {0};
+
+      ssize_t read_bytes = read(clientFd, buff, sizeof(buff) - 1);
+
+      if (read_bytes < 0) {
+        throw std::runtime_error("Failed to read the message from the client!");
+      }
+
+      cout << "Message from client: " << buff << endl;
+      // }
                       
 
 
 
     } catch (std::exception &e) {
+      close(socketFd);
       cout << e.what() << endl;
     }
 
