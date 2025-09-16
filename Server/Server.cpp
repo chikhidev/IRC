@@ -32,7 +32,7 @@ Server::Server(int p) : poll_fds(NULL), poll_count(0)
     poll_count = 1;
 }
 
-Server::~Server() throw()
+Server::~Server()
 {
     close(fd);
     delete[] poll_fds;
@@ -53,28 +53,77 @@ void Server::setPassword(std::string &pass)
     password = pass;
 }
 
-void Server::createClient(int fd, sockaddr_in addr, socklen_t addr_len)
+void Server::registerClient(int fd, Client client)
 {
-    Client new_client;
+    
+}
 
-    int new_socket = accept(fd, (struct sockaddr *)new_client.getAddr(), (socklen_t *)new_client.getAddrLen());
+void Server::addPollFd(int new_fd)
+{
+    struct pollfd *new_poll_fds = new struct pollfd[poll_count + 1];
+    for (int i = 0; i < poll_count; ++i)
+    {
+        new_poll_fds[i] = poll_fds[i];
+    }
+    new_poll_fds[poll_count].fd = new_fd;
+    new_poll_fds[poll_count].events = POLLIN;
+
+    delete[] poll_fds;
+    poll_fds = new_poll_fds;
+    poll_count++;
+}
+
+void Server::removePollFd(int fd_to_remove)
+{
+    int index = -1;
+    for (int i = 0; i < poll_count; ++i)
+    {
+        if (poll_fds[i].fd == fd_to_remove)
+        {
+            index = i;
+            break;
+        }
+    }
+    if (index == -1) return; // Not found
+
+    struct pollfd *new_poll_fds = new struct pollfd[poll_count - 1];
+    for (int i = 0, j = 0; i < poll_count; ++i)
+    {
+        if (i != index)
+        {
+            new_poll_fds[j++] = poll_fds[i];
+        }
+    }
+
+    delete[] poll_fds;
+    poll_fds = new_poll_fds;
+    poll_count--;
+}
+
+void Server::createClient(int fd)
+{
+    sockaddr_in client_addr;
+    socklen_t addr_len = sizeof(client_addr);
+    
+    int new_socket = accept(fd, (struct sockaddr *)&client_addr, &addr_len);
     if (new_socket < 0)
     {
         std::cerr << "Accept failed" << std::endl;
         return;
     }
-    std::cout << "New connection, socket fd is " << new_socket << std::endl;
+    
+    Client new_client(new_socket, client_addr, addr_len);
 
-    new_client.setFd(new_socket);
-
+    clients[new_socket] = new_client;
+    addPollFd(new_socket);
+    
     std::cout << "Client connected: " << new_socket << std::endl;
+    send(new_socket, "Welcome to the IRC server!\n", 27, 0);
 }
 
 void Server::start()
 {
     std::cout << "Server started on port " << port << std::endl;
-
-    // logic to accept and handle client connections would go here
 
     while (true)
     {
@@ -86,18 +135,48 @@ void Server::start()
 
         for (int i = 0; i < poll_count; ++i)
         {
-            if (poll_fds[i].revents & POLLIN)
-            {
-                if (poll_fds[i].fd == fd)
-                {
-                    createClient(fd, addr, sizeof(addr));
+            if ((poll_fds[i].revents & POLLIN)) {
+                if (poll_fds[i].fd == fd) {
+
+                    std::cout << "New connection on server socket" << std::endl;
+                    createClient(fd);
+
+                } else {
+                    char buffer[1024] = {0};
+                    int readed_bytes = read(poll_fds[i].fd, buffer, 1024);
+
+                    if (readed_bytes < 0) {
+                        std::cerr << "Read error on fd: " << poll_fds[i].fd << std::endl;
+
+                        int saved_fd = poll_fds[i].fd;
+                        clients.erase(saved_fd);
+                        removePollFd(saved_fd);
+                        close(saved_fd);
+                        i--;
+
+                        std::cout << "Client disconnected: " << saved_fd << std::endl;
+
+                    } else {
+
+                        std::cout << "Received data from fd: " << poll_fds[i].fd << std::endl;
+                        std::string msg(buffer, readed_bytes = read(poll_fds[i].fd, buffer, 1024));
+                        commandHandler(poll_fds[i].fd, msg);
+                    }
                 }
-            }
-            else
-            {
-                // Handle data from existing client
-                
+
             }
         }
     }
 }
+
+
+void Server::commandHandler(int fd, std::string buffer)
+{
+    // Parse and handle commands from clients
+    std::istringstream iss(buffer);
+    std::string command;
+    iss >> command;
+
+   std::cout << "Received command: " << command << " from fd: " << fd << std::endl;
+}
+

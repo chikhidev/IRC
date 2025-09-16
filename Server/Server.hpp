@@ -9,13 +9,21 @@ class Server {
     std::string password;
     int fd;
     sockaddr_in addr;
-    std::map<std::string, Client> clients;
+    std::map<int, Client> clients;
     struct pollfd *poll_fds;
     int poll_count;
 
+    void addPollFd(int);
+    void removePollFd(int);
+    void registerClient(int, Client);
+    void createClient(int);
+
+    // Command handling
+    void commandHandler(int, std::string);
+
 public:
     Server(int);
-    ~Server() throw();
+    ~Server();
 
     int getFd() const;
     sockaddr_in getAddr() const;
@@ -23,8 +31,6 @@ public:
     void setPassword(std::string&);
 
     void start();
-    void createClient(int, sockaddr_in, socklen_t);
-
 };
 
 

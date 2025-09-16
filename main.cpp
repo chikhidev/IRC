@@ -1,8 +1,8 @@
-#include "Server.hpp"
+#include "Server/Server.hpp"
 
 int main(int ac, char**av) {
 
-    if (ac != 2) {
+    if (ac != 3) {
         std::cerr << "Usage: ircserv <port> <password>" << std::endl;
         return 1;
     }
@@ -24,3 +24,4 @@ int main(int ac, char**av) {
 
     return 0;
 }
+

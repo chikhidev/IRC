@@ -11,19 +11,22 @@ class Client {
     std::string username;
     std::string realname;
     bool isRegistered;
-    bool isOperator;
 
 public:
 
     Client();
-    ~Client() throw();
+    Client(int, sockaddr_in, socklen_t);
+    ~Client();
 
     int getFd() const;
-    sockaddr_in* getAddr();
-    socklen_t* getAddrLen();
+    sockaddr_in getAddr();
+    socklen_t getAddrLen();
+    void setAddr(sockaddr_in);
+    void setAddrLen(socklen_t);
 
     void setFd(int);
-
+    bool isRegisteredClient() const;
 };
+
 
 #endif
