@@ -28,6 +28,8 @@ public:
     bool isRegisteredClient() const;
 
     void setRegistered(bool);
+
+    void setNickname(const std::string &);
 };
 
 

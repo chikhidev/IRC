@@ -174,34 +174,8 @@ void Server::createClient(int fd)
     addPollFd(new_socket);
 
     std::cout << "[SERVER] Client connected: " << new_socket << std::endl;
-    dmClient(new_socket, "Welcome to the IRC server!\n");
 }
 
-/*
-* Check if the client is authenticated
-*/
-bool Server::isClientRegistered(int client_fd) const
-{
-    std::map<int, Client>::const_iterator it = clients.find(client_fd);
-    if (it != clients.end())
-    {
-        return it->second.isRegisteredClient();
-    }
-    return false;
-}
-
-/*
-* Register a client
-*/
-void Server::registerClient(int client_fd)
-{
-    std::map<int, Client>::iterator it = clients.find(client_fd);
-    if (it != clients.end())
-    {
-        it->second.setRegistered(true);
-        std::cout << "[SERVER] Client " << client_fd << " registered successfully." << std::endl;
-    }
-}
 
 /*
 * Check if the provided password matches the server's password
@@ -210,8 +184,6 @@ bool Server::isPasswordMatching(const std::string &pass) const
 {
     return pass == password;
 }
-
-
 
 
 
@@ -280,10 +252,12 @@ void Server::loop()
 */
 void Server::sendToAllClients(const std::string &message)
 {
+    std::string prefixed_message = ":ircserv " + message;
+
     for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
     {
         int client_fd = it->first;
-        if (send(client_fd, message.c_str(), message.length(), 0) < 0)
+        if (send(client_fd, prefixed_message.c_str(), prefixed_message.length(), 0) < 0)
         {
             std::cerr << "[SERVER] Failed to send message to fd " << client_fd << std::endl;
         }
@@ -295,7 +269,9 @@ void Server::sendToAllClients(const std::string &message)
 */
 void Server::dmClient(int client_fd, const std::string &message)
 {
-    if (send(client_fd, message.c_str(), message.length(), 0) < 0)
+    std::string prefixed_message = ":ircserv " + message;
+
+    if (send(client_fd, prefixed_message.c_str(), prefixed_message.length(), 0) < 0)
     {
         std::cerr << "[SERVER] Failed to send DM to fd " << client_fd << std::endl;
     }

@@ -9,7 +9,7 @@ void Services::handlePass(int client_fd, std::string &params)
     std::string password = params;
     if (server->isPasswordMatching(password))
     {
-        server->registerClient(client_fd);
+        server->clients[client_fd].setRegistered(true);
         server->dmClient(client_fd, "001 :Welcome to the IRC server!\r\n");
         return ;
     }

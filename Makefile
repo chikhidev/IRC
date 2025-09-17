@@ -19,6 +19,8 @@ all: $(NAME)
 $(NAME): $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^
 
+b: all clean
+
 clean:
 	@rm -f $(OBJ)
 

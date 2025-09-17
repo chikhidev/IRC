@@ -15,7 +15,7 @@ Services::~Services() {}
 */
 bool Services::isAuth(int client_fd, std::string &command)
 {
-    if (command != "PASS" && !server->isClientRegistered(client_fd))
+    if (command != "PASS" && !server->clients[client_fd].isRegisteredClient())
     {
         server->dmClient(client_fd, "451 :You have not registered\r\n");
         return false;
@@ -29,6 +29,10 @@ bool Services::isAuth(int client_fd, std::string &command)
 void Services::handleCommand(int client_fd, std::string &msg)
 {
     msg.erase(msg.find_last_not_of("\r\n") + 1);
+
+    if (msg.empty())
+        return;
+
     std::istringstream iss(msg);
     std::string command;
     std::getline(iss, command, ' ');

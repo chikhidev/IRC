@@ -47,3 +47,7 @@ bool Client::isRegisteredClient() const {
 void Client::setRegistered(bool status) {
     isRegistered = status;
 }
+
+void Client::setNickname(const std::string &nick) {
+    nickname = nick;
+}

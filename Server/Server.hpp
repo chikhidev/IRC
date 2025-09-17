@@ -11,7 +11,6 @@ class Server {
     std::string password;
     int fd;
     sockaddr_in addr;
-    std::map<int, Client> clients;
     struct pollfd *poll_fds;
     int poll_count;
 
@@ -23,6 +22,8 @@ class Server {
     void createClient(int);
 
 public:
+    std::map<int, Client> clients;
+
     Server(int);
     ~Server();
 
