@@ -43,3 +43,7 @@ void Client::setFd(int socket_fd) {
 bool Client::isRegisteredClient() const {
     return isRegistered;
 }
+
+void Client::setRegistered(bool status) {
+    isRegistered = status;
+}

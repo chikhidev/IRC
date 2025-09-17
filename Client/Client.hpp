@@ -26,6 +26,8 @@ public:
 
     void setFd(int);
     bool isRegisteredClient() const;
+
+    void setRegistered(bool);
 };
 
 

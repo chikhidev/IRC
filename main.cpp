@@ -14,7 +14,7 @@ int main(int ac, char**av) {
         Server server(port);
         server.setPassword(password);
 
-        server.start();
+        server.loop();
 
 
     } catch (const std::exception &e) {

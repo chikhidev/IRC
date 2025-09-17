@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "../Services/Services.hpp"
 
 Server::Server(int p) : poll_fds(NULL), poll_count(0)
 {
@@ -38,24 +39,37 @@ Server::Server(int p) : poll_fds(NULL), poll_count(0)
     poll_fds[0].fd = fd;
     poll_fds[0].events = POLLIN;
     poll_count = 1;
+
+    services = new Services(this);
 }
 
 Server::~Server()
 {
     close(fd);
     delete[] poll_fds;
+    delete services;
 }
 
+
+/*
+* Get the server file descriptor
+*/
 int Server::getFd() const
 {
     return fd;
 }
 
+/*
+* Get the server address
+*/
 sockaddr_in Server::getAddr() const
 {
     return addr;
 }
 
+/*
+* Set the server password
+*/
 void Server::setPassword(std::string &pass)
 {
     password = pass;
@@ -65,6 +79,9 @@ void Server::registerClient(int fd, Client client)
 {
 }
 
+/*
+* Add a file descriptor to the poll set
+*/
 void Server::addPollFd(int new_fd)
 {
     struct pollfd *new_poll_fds = new struct pollfd[poll_count + 1];
@@ -80,6 +97,9 @@ void Server::addPollFd(int new_fd)
     poll_count++;
 }
 
+/*
+* Remove a file descriptor from the poll set
+*/
 void Server::removePollFd(int fd_to_remove)
 {
     int index = -1;
@@ -108,10 +128,13 @@ void Server::removePollFd(int fd_to_remove)
     poll_count--;
 }
 
+/*
+* Remove a client from the server
+*/
 void Server::removeClient(int client_fd)
 {
-    std::cout << "Removing client: " << client_fd << std::endl;
-    
+    std::cout << "[SERVER] Removing client: " << client_fd << std::endl;
+
     // Remove from clients map
     std::map<int, Client>::iterator it = clients.find(client_fd);
     if (it != clients.end())
@@ -126,6 +149,9 @@ void Server::removeClient(int client_fd)
     close(client_fd);
 }
 
+/*
+* Create a new client and add it to the clients map
+*/
 void Server::createClient(int fd)
 {
     sockaddr_in client_addr;
@@ -147,13 +173,59 @@ void Server::createClient(int fd)
     clients[new_socket] = new_client;
     addPollFd(new_socket);
 
-    std::cout << "Client connected: " << new_socket << std::endl;
-    send(new_socket, "Welcome to the IRC server!\n", 27, 0);
+    std::cout << "[SERVER] Client connected: " << new_socket << std::endl;
+    dmClient(new_socket, "Welcome to the IRC server!\n");
 }
 
-void Server::start()
+/*
+* Check if the client is authenticated
+*/
+bool Server::isClientRegistered(int client_fd) const
 {
-    std::cout << "Server started on port " << port << std::endl;
+    std::map<int, Client>::const_iterator it = clients.find(client_fd);
+    if (it != clients.end())
+    {
+        return it->second.isRegisteredClient();
+    }
+    return false;
+}
+
+/*
+* Register a client
+*/
+void Server::registerClient(int client_fd)
+{
+    std::map<int, Client>::iterator it = clients.find(client_fd);
+    if (it != clients.end())
+    {
+        it->second.setRegistered(true);
+        std::cout << "[SERVER] Client " << client_fd << " registered successfully." << std::endl;
+    }
+}
+
+/*
+* Check if the provided password matches the server's password
+*/
+bool Server::isPasswordMatching(const std::string &pass) const
+{
+    return pass == password;
+}
+
+
+
+
+
+
+/*
+* Main server loop:
+* - Polls for events
+* - Accepts new connections
+* - Reads data from clients
+* - Handles client disconnections
+*/
+void Server::loop()
+{
+    std::cout << "[SERVER] Server started on port " << port << std::endl;
 
     while (true)
     {
@@ -169,7 +241,7 @@ void Server::start()
             {
                 if (poll_fds[i].fd == fd)
                 {
-                    std::cout << "New connection on server socket" << std::endl;
+                    std::cout << "[SERVER] New connection on server socket" << std::endl;
                     createClient(fd);
                 }
                 else
@@ -177,13 +249,11 @@ void Server::start()
                     char buffer[1024] = {0};
                     int readed_bytes = read(poll_fds[i].fd, buffer, 1024);
 
-                    std::cout << "Read attempt on fd " << poll_fds[i].fd << ": " << readed_bytes << " bytes" << std::endl;
-
                     if (readed_bytes <= 0)
                     {
                         if (readed_bytes == 0)
                         {
-                            std::cout << "Client disconnected gracefully: " << poll_fds[i].fd << std::endl;
+                            std::cout << "[SERVER] Client disconnected gracefully: " << poll_fds[i].fd << std::endl;
                         }
                         else
                         {
@@ -195,9 +265,9 @@ void Server::start()
                     }
                     else
                     {
-                        std::cout << "Received " << readed_bytes << " bytes from fd: " << poll_fds[i].fd << std::endl;
                         std::string msg(buffer, readed_bytes);
-                        commandHandler(poll_fds[i].fd, msg);
+                        services->handleCommand(poll_fds[i].fd, msg);
+
                     }
                 }
             }
@@ -205,17 +275,28 @@ void Server::start()
     }
 }
 
-void Server::commandHandler(int fd, std::string buffer)
+/*
+* Send a message to all connected clients at once
+*/
+void Server::sendToAllClients(const std::string &message)
 {
-    // Parse and handle commands from clients
-    std::istringstream iss(buffer);
-    std::string command;
-    iss >> command;
+    for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+    {
+        int client_fd = it->first;
+        if (send(client_fd, message.c_str(), message.length(), 0) < 0)
+        {
+            std::cerr << "[SERVER] Failed to send message to fd " << client_fd << std::endl;
+        }
+    }
+}
 
-    std::cout << "Received command: '" << command << "' from fd: " << fd << std::endl;
-    std::cout << "Full buffer: '" << buffer << "' (length: " << buffer.length() << ")" << std::endl;
-
-    // For now, just echo back to keep connection alive
-    std::string response = "Echo: " + buffer;
-    send(fd, response.c_str(), response.length(), 0);
+/*
+* Send a direct message to a specific client
+*/
+void Server::dmClient(int client_fd, const std::string &message)
+{
+    if (send(client_fd, message.c_str(), message.length(), 0) < 0)
+    {
+        std::cerr << "[SERVER] Failed to send DM to fd " << client_fd << std::endl;
+    }
 }

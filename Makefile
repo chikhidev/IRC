@@ -2,9 +2,15 @@ NAME=ircserv
 CC=c++
 CFLAGS=-Wall -Wextra -Werror -std=c++98 -O3
 
+SERVICES_SRC=Services/Services.cpp \
+	Services/pass.cpp \
+	Services/nick.cpp
+
 SRC=Server/Server.cpp \
 	Client/Client.cpp \
 	main.cpp
+
+SRC += $(SERVICES_SRC)
 
 OBJ=$(SRC:.cpp=.o)
 

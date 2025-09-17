@@ -4,6 +4,8 @@
 #include "../shared/libs.hpp"
 #include "../Client/Client.hpp"
 
+class Services;
+
 class Server {
     int port;
     std::string password;
@@ -13,14 +15,12 @@ class Server {
     struct pollfd *poll_fds;
     int poll_count;
 
+    Services *services;
+
     void addPollFd(int);
     void removePollFd(int);
-    void removeClient(int);
     void registerClient(int, Client);
     void createClient(int);
-
-    // Command handling
-    void commandHandler(int, std::string);
 
 public:
     Server(int);
@@ -30,8 +30,16 @@ public:
     sockaddr_in getAddr() const;
 
     void setPassword(std::string&);
+    bool isPasswordMatching(const std::string &) const;
 
-    void start();
+    void loop();
+
+    void sendToAllClients(const std::string &);
+    void dmClient(int, const std::string &);
+
+    bool isClientRegistered(int) const;
+    void registerClient(int);
+    void removeClient(int);
 };
 
 
