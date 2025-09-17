@@ -15,6 +15,7 @@ class Server {
 
     void addPollFd(int);
     void removePollFd(int);
+    void removeClient(int);
     void registerClient(int, Client);
     void createClient(int);
 

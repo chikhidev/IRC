@@ -11,5 +11,7 @@
 #include <poll.h>
 #include <map>
 #include <algorithm>
+#include <fcntl.h>
+#include <errno.h>
 
 #endif

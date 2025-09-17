@@ -12,9 +12,8 @@ Client::Client(int socket_fd, sockaddr_in address, socklen_t length) {
 }
 
 Client::~Client() {
-    if (fd != -1) {
-        close(fd);
-    }
+    // Don't close the fd here since the Server class manages the socket
+    // The socket will be closed by the Server when removing the client
 }
 
 void Client::setAddr(sockaddr_in address) {
