@@ -133,7 +133,7 @@ void Server::start()
             throw std::runtime_error("Poll failed");
         }
 
-        for (int i = 0; i < poll_count; ++i)
+        for (int i = poll_count - 1; i >= 0; --i)
         {
             if ((poll_fds[i].revents & POLLIN)) {
                 if (poll_fds[i].fd == fd) {
@@ -141,30 +141,31 @@ void Server::start()
                     std::cout << "New connection on server socket" << std::endl;
                     createClient(fd);
 
-                } else {
-                    char buffer[1024] = {0};
-                    int readed_bytes = read(poll_fds[i].fd, buffer, 1024);
-
-                    if (readed_bytes < 0) {
-                        std::cerr << "Read error on fd: " << poll_fds[i].fd << std::endl;
-
-                        int saved_fd = poll_fds[i].fd;
-                        clients.erase(saved_fd);
-                        removePollFd(saved_fd);
-                        close(saved_fd);
-                        i--;
-
-                        std::cout << "Client disconnected: " << saved_fd << std::endl;
-
-                    } else {
-
-                        std::cout << "Received data from fd: " << poll_fds[i].fd << std::endl;
-                        std::string msg(buffer, readed_bytes = read(poll_fds[i].fd, buffer, 1024));
-                        commandHandler(poll_fds[i].fd, msg);
-                    }
                 }
+                // else {
+                //     char buffer[1024] = {0};
+                //     int readed_bytes = read(poll_fds[i].fd, buffer, 1024);
 
+                //     if (readed_bytes <= 0) {
+                //         std::cerr << "Read error on fd: " << poll_fds[i].fd << std::endl;
+
+                //         int saved_fd = poll_fds[i].fd;
+                //         clients.erase(saved_fd);
+                //         removePollFd(saved_fd);
+                //         close(saved_fd);
+                //         i--;
+
+                //         std::cout << "Client disconnected: " << saved_fd << std::endl;
+
+                //     } else {
+
+                //         std::cout << "Received data from fd: " << poll_fds[i].fd << std::endl;
+                //         std::string msg(buffer, readed_bytes = read(poll_fds[i].fd, buffer, 1024));
+                //         commandHandler(poll_fds[i].fd, msg);
+                //     }
+                // }
             }
+
         }
     }
 }

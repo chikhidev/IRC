@@ -10,5 +10,6 @@
 #include <sys/socket.h>
 #include <poll.h>
 #include <map>
+#include <algorithm>
 
 #endif
