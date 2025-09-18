@@ -184,10 +184,6 @@ void Server::createClient(int fd)
         return;
     }
 
-    // Set socket to non-blocking mode
-    int flags = fcntl(new_socket, F_GETFL, 0);
-    fcntl(new_socket, F_SETFL, flags | O_NONBLOCK);
-
     Client new_client(new_socket, client_addr, addr_len);
 
     clients[new_socket] = new_client;
@@ -287,12 +283,37 @@ void Server::sendToAllClients(const std::string &message)
 /*
 * Send a direct message to a specific client
 */
-void Server::dmClient(Client& client, const std::string &message)
-{
-    std::string prefixed_message = ":ircserv " + message;
 
-    if (send(client.getFd(), prefixed_message.c_str(), prefixed_message.length(), 0) < 0)
-    {
-        std::cerr << "[SERVER] Failed to send DM to fd " << client.getFd() << std::endl;
+void Server::dmClient(Client& client, int code, const std::string &message) {
+    std::string response = ":ircserv ";
+
+    response += (code < 10 ? "00" : (code < 100 ? "0" : "")) +
+                           std::to_string(code) + " ";
+
+    // If client has a nick, use it, otherwise use "*"
+    response += (client.hasNick() ? client.getNick() : "*");
+
+    // Add the trailing message
+    response += " :" + message + "\r\n";
+
+    if (send(client.getFd(), response.c_str(), response.size(), 0) < 0) {
+        std::cerr << "[SERVER] Failed to send message to fd "
+                  << client.getFd() << std::endl;
     }
 }
+
+// void Server::dmClient(Client& client, int status, const std::string &message)
+// {
+//     std::string prefixed_message = ":ircserv " + std::to_string(status) + " ";
+
+//     if (client.hasNick()) {
+//         prefixed_message += ":" + client.getNick() + " " + message;
+//     } else {
+//         prefixed_message += ":ircserv " + message;
+//     }
+
+//     if (send(client.getFd(), prefixed_message.c_str(), prefixed_message.length(), 0) < 0)
+//     {
+//         std::cerr << "[SERVER] Failed to send DM to fd " << client.getFd() << std::endl;
+//     }
+// }

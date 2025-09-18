@@ -36,7 +36,7 @@ public:
     void loop();
 
     void sendToAllClients(const std::string &);
-    void dmClient(Client&, const std::string &);
+    void dmClient(Client&, int status, const std::string &);
 
     bool isClientRegistered(int) const;
     void registerClient(int);

@@ -10,15 +10,15 @@ void Services::handlePass(Client &client, std::string &params)
     if (server->isPasswordMatching(password))
     {
         if (client.isAuthenticated()) {
-            server->dmClient(client, "462 :You may not authenticate again\r\n");
+            server->dmClient(client, 462, "You may not authenticate again\r\n");
             return;
         }
 
         client.setAuthenticated(true);
-        server->dmClient(client, "001 :Welcome to the IRC server!\r\n");
+        server->dmClient(client, 001, "Welcome to the IRC server!\r\n");
         return ;
     }
 
-    server->dmClient(client, "464 :Password incorrect\r\n");
+    server->dmClient(client, 464, "Password incorrect\r\n");
     server->removeClient(client);
 }

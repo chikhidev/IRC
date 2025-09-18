@@ -7,6 +7,11 @@ Services::Services(Server *srv) : server(srv)
     command_map["PASS"] = &Services::handlePass;
     command_map["NICK"] = &Services::handleNick;
     command_map["USER"] = &Services::handleUser;
+    command_map["QUIT"] = &Services::handleQuit;
+
+    command_map["pass"] = &Services::handlePass;
+    command_map["nick"] = &Services::handleNick;
+    command_map["user"] = &Services::handleUser;
 }
 
 
@@ -19,7 +24,7 @@ bool Services::isAuth(Client &client, std::string &command)
 {
     if (command != "PASS" && !client.isAuthenticated())
     {
-        server->dmClient(client, "451 :You must be authenticated to use this command\r\n");
+        server->dmClient(client, 451, "You must be authenticated to use this command\r\n");
         return false;
     }
     return true;
@@ -35,7 +40,7 @@ bool Services::isRegistered(Client &client, std::string &command)
         command != "USER" &&
         !client.isRegistered())
     {
-        server->dmClient(client, "451 :You must be registered to use this command\r\n");
+        server->dmClient(client, 451, "You must be registered to use this command\r\n");
         return false;
     }
     return true;
@@ -62,6 +67,7 @@ void Services::handleCommand(int client_fd, std::string &msg)
 
     if (it != command_map.end())
     {
+        std::cout << "[SERVICE] Handling command: [" << command << "] with params: " << params << std::endl;
 
         if (!isAuth(client, command)) {
             return;
@@ -76,6 +82,6 @@ void Services::handleCommand(int client_fd, std::string &msg)
     }
 
     std::cout << "[SERVICE] Unknown command: " << command << std::endl;
-    server->dmClient(client, "421 " + command + " :Unknown command\r\n");
+    server->dmClient(client, 421, command + " :Unknown command\r\n");
 }
 

@@ -26,6 +26,7 @@ public:
     void handlePass(Client&, std::string&);
     void handleNick(Client&, std::string&);
     void handleUser(Client&, std::string&);
+    void handleQuit(Client&, std::string&);
 };
 
 #endif
