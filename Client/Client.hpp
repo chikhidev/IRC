@@ -10,7 +10,8 @@ class Client {
     std::string nickname;
     std::string username;
     std::string realname;
-    bool isRegistered;
+    bool _isAuthenticated;
+    bool _isRegistered;
 
 public:
 
@@ -21,15 +22,22 @@ public:
     int getFd() const;
     sockaddr_in getAddr();
     socklen_t getAddrLen();
+    std::string getNick() const;
+    std::string getUsername() const;
+        
     void setAddr(sockaddr_in);
     void setAddrLen(socklen_t);
-
     void setFd(int);
-    bool isRegisteredClient() const;
-
     void setRegistered(bool);
-
+    void setAuthenticated(bool);
     void setNickname(const std::string &);
+    void setUsername(const std::string &);
+    void setRealname(const std::string &);
+
+    bool hasNick() const;
+    bool isRegistered() const;
+    bool isAuthenticated() const;
+
 };
 
 

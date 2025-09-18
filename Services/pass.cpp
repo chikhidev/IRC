@@ -4,16 +4,21 @@
 /*
 * Handle the PASS command
 */
-void Services::handlePass(int client_fd, std::string &params)
+void Services::handlePass(Client &client, std::string &params)
 {
     std::string password = params;
     if (server->isPasswordMatching(password))
     {
-        server->clients[client_fd].setRegistered(true);
-        server->dmClient(client_fd, "001 :Welcome to the IRC server!\r\n");
+        if (client.isAuthenticated()) {
+            server->dmClient(client, "462 :You may not authenticate again\r\n");
+            return;
+        }
+
+        client.setAuthenticated(true);
+        server->dmClient(client, "001 :Welcome to the IRC server!\r\n");
         return ;
     }
 
-    server->dmClient(client_fd, "464 :Password incorrect\r\n");
-    server->removeClient(client_fd);
+    server->dmClient(client, "464 :Password incorrect\r\n");
+    server->removeClient(client);
 }

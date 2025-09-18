@@ -149,6 +149,26 @@ void Server::removeClient(int client_fd)
     close(client_fd);
 }
 
+void Server::removeClient(Client& client)
+{
+    int client_fd = client.getFd();
+
+    std::cout << "[SERVER] Removing client: " << client_fd << std::endl;
+
+    // Remove from clients map
+    std::map<int, Client>::iterator it = clients.find(client_fd);
+    if (it != clients.end())
+    {
+        clients.erase(it);
+    }
+    
+    // Remove from poll_fds
+    removePollFd(client_fd);
+    
+    // Close the socket
+    close(client_fd);
+}
+
 /*
 * Create a new client and add it to the clients map
 */
@@ -267,12 +287,12 @@ void Server::sendToAllClients(const std::string &message)
 /*
 * Send a direct message to a specific client
 */
-void Server::dmClient(int client_fd, const std::string &message)
+void Server::dmClient(Client& client, const std::string &message)
 {
     std::string prefixed_message = ":ircserv " + message;
 
-    if (send(client_fd, prefixed_message.c_str(), prefixed_message.length(), 0) < 0)
+    if (send(client.getFd(), prefixed_message.c_str(), prefixed_message.length(), 0) < 0)
     {
-        std::cerr << "[SERVER] Failed to send DM to fd " << client_fd << std::endl;
+        std::cerr << "[SERVER] Failed to send DM to fd " << client.getFd() << std::endl;
     }
 }

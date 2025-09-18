@@ -4,7 +4,8 @@ CFLAGS=-Wall -Wextra -Werror -std=c++98 -O3
 
 SERVICES_SRC=Services/Services.cpp \
 	Services/pass.cpp \
-	Services/nick.cpp
+	Services/nick.cpp \
+	Services/user.cpp
 
 SRC=Server/Server.cpp \
 	Client/Client.cpp \

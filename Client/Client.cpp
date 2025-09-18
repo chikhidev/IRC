@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(): addr_len(sizeof(addr)), fd(-1), isRegistered(false) {
+Client::Client(): addr_len(sizeof(addr)), fd(-1), _isAuthenticated(false), _isRegistered(false) {
     memset(&addr, 0, sizeof(addr));
 }
 
@@ -8,7 +8,8 @@ Client::Client(int socket_fd, sockaddr_in address, socklen_t length) {
     fd = socket_fd;
     memcpy(&addr, &address, sizeof(address));
     addr_len = length;
-    isRegistered = false;
+    _isRegistered = false;
+    _isAuthenticated = false;
 }
 
 Client::~Client() {
@@ -40,14 +41,42 @@ void Client::setFd(int socket_fd) {
     fd = socket_fd;
 }
 
-bool Client::isRegisteredClient() const {
-    return isRegistered;
+bool Client::isRegistered() const {
+    return _isRegistered;
 }
 
 void Client::setRegistered(bool status) {
-    isRegistered = status;
+    _isRegistered = status;
+}
+
+void Client::setAuthenticated(bool status) {
+    _isAuthenticated = status;
 }
 
 void Client::setNickname(const std::string &nick) {
     nickname = nick;
+}
+
+void Client::setUsername(const std::string &user) {
+    username = user;
+}
+
+void Client::setRealname(const std::string &real) {
+    realname = real;
+}
+
+bool Client::isAuthenticated() const {
+    return _isAuthenticated;
+}
+
+std::string Client::getNick() const {
+    return nickname;
+}
+
+std::string Client::getUsername() const {
+    return username;
+}
+
+bool Client::hasNick() const {
+    return !nickname.empty();
 }

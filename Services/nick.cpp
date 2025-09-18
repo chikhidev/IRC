@@ -4,9 +4,9 @@
 /*
 * Handle the NICK command
 */
-void Services::handleNick(int client_fd, std::string &params)
+void Services::handleNick(Client &client, std::string &params)
 {
-    server->clients[client_fd].setNickname(params);
+    client.setNickname(params);
     std::string response = ":" + params + " NICK " + params + "\r\n";
-    server->dmClient(client_fd, response);
+    server->dmClient(client, response);
 }

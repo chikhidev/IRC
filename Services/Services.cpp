@@ -1,10 +1,12 @@
 #include "Services.hpp"
 #include "../Server/Server.hpp"
+#include "../Client/Client.hpp"
 
 Services::Services(Server *srv) : server(srv)
 {
     command_map["PASS"] = &Services::handlePass;
     command_map["NICK"] = &Services::handleNick;
+    command_map["USER"] = &Services::handleUser;
 }
 
 
@@ -13,11 +15,27 @@ Services::~Services() {}
 /*
 * Check if the client is authenticated before processing certain commands
 */
-bool Services::isAuth(int client_fd, std::string &command)
+bool Services::isAuth(Client &client, std::string &command)
 {
-    if (command != "PASS" && !server->clients[client_fd].isRegisteredClient())
+    if (command != "PASS" && !client.isAuthenticated())
     {
-        server->dmClient(client_fd, "451 :You have not registered\r\n");
+        server->dmClient(client, "451 :You must be authenticated to use this command\r\n");
+        return false;
+    }
+    return true;
+}
+
+/*
+* Check if the client is registered before processing certain commands
+*/
+bool Services::isRegistered(Client &client, std::string &command)
+{
+    if (command != "PASS" &&
+        command != "NICK" &&
+        command != "USER" &&
+        !client.isRegistered())
+    {
+        server->dmClient(client, "451 :You must be registered to use this command\r\n");
         return false;
     }
     return true;
@@ -39,15 +57,25 @@ void Services::handleCommand(int client_fd, std::string &msg)
     std::string params;
     std::getline(iss, params);
     
-    std::map<std::string, void (Services::*)(int, std::string&)>::iterator it = command_map.find(command);
+    Client &client = server->clients[client_fd];
+    std::map<std::string, void (Services::*)(Client&, std::string&)>::iterator it = command_map.find(command);
+
     if (it != command_map.end())
     {
-        if (isAuth(client_fd, command))
-            (this->*(it->second))(client_fd, params);
+
+        if (!isAuth(client, command)) {
+            return;
+        }
+
+        if (!isRegistered(client, command)) {
+            return;
+        }
+
+        (this->*(it->second))(client, params);
         return;
     }
 
     std::cout << "[SERVICE] Unknown command: " << command << std::endl;
-    server->dmClient(client_fd, "421 " + command + " :Unknown command\r\n");
+    server->dmClient(client, "421 " + command + " :Unknown command\r\n");
 }
 

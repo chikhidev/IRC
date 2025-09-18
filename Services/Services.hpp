@@ -8,21 +8,24 @@
 */
 
 class Server;
+class Client;
 
 class Services {
 
     Server *server;
-    std::map<std::string, void (Services::*)(int, std::string&)> command_map;
+    std::map<std::string, void (Services::*)(Client&, std::string&)> command_map;
 public:
     Services(Server *);
     ~Services();
 
     void handleCommand(int, std::string&);
 
-    bool isAuth(int, std::string&);
+    bool isAuth(Client&, std::string&);
+    bool isRegistered(Client&, std::string&);
 
-    void handlePass(int, std::string&);
-    void handleNick(int, std::string&);
+    void handlePass(Client&, std::string&);
+    void handleNick(Client&, std::string&);
+    void handleUser(Client&, std::string&);
 };
 
 #endif
