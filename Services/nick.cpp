@@ -7,6 +7,6 @@
 void Services::handleNick(Client &client, std::string &params)
 {
     client.setNickname(params);
-    std::string response = ":" + params + " NICK " + params + "\r\n";
+    std::string response = ":" + params + " NICK " + params;
     server->dmClient(client, 0, response);
 }

@@ -6,7 +6,7 @@ void Services::handleUser(Client& client, std::string &params) {
     std::string username, mode, unused, realname;
 
     if (!(iss >> username >> mode >> unused)) {
-        server->dmClient(client, 461, "USER :Not enough parameters\r\n");
+        server->dmClient(client, 461, "USER :Not enough parameters");
         return;
     }
 
@@ -24,5 +24,5 @@ void Services::handleUser(Client& client, std::string &params) {
     client.setRegistered(true);
 
     // Send registration burst
-    server->dmClient(client, 001, "Welcome to the IRC network, " + client.getNick() + "!" + client.getUsername() + "@localhost\r\n");
+    server->dmClient(client, 001, "Welcome to the IRC network, " + client.getNick() + "!" + client.getUsername() + "@localhost");
 }

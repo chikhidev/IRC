@@ -24,7 +24,7 @@ bool Services::isAuth(Client &client, std::string &command)
 {
     if (command != "PASS" && !client.isAuthenticated())
     {
-        server->dmClient(client, 451, "You must be authenticated to use this command\r\n");
+        server->dmClient(client, 451, "You must be authenticated to use this command");
         return false;
     }
     return true;
@@ -40,7 +40,7 @@ bool Services::isRegistered(Client &client, std::string &command)
         command != "USER" &&
         !client.isRegistered())
     {
-        server->dmClient(client, 451, "You must be registered to use this command\r\n");
+        server->dmClient(client, 451, "You must be registered to use this command");
         return false;
     }
     return true;
@@ -94,6 +94,6 @@ void Services::handleCommand(int client_fd, std::string &msg)
     }
 
     std::cout << "[SERVICE] Unknown command: " << command << std::endl;
-    server->dmClient(client, 421, command + " :Unknown command\r\n");
+    server->dmClient(client, 421, command + " :Unknown command");
 }
 

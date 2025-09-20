@@ -290,10 +290,8 @@ void Server::dmClient(Client& client, int code, const std::string &message) {
     response += (code < 10 ? "00" : (code < 100 ? "0" : "")) +
                            std::to_string(code) + " ";
 
-    // If client has a nick, use it, otherwise use "*"
     response += (client.hasNick() ? client.getNick() : "*");
 
-    // Add the trailing message
     response += " :" + message + client.getCommandTerminators();
 
     if (send(client.getFd(), response.c_str(), response.size(), 0) < 0) {
