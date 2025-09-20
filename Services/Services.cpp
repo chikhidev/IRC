@@ -51,7 +51,14 @@ bool Services::isRegistered(Client &client, std::string &command)
 */
 void Services::handleCommand(int client_fd, std::string &msg)
 {
-    msg.erase(msg.find_last_not_of("\r\n") + 1);
+    std::string terminators;
+    for (int i = msg.size() - 1; i >= 0; --i)
+    {
+        if ((msg[i] >= 32 && msg[i] <= 126))
+            break;
+        terminators = msg[i] + terminators;
+        msg.erase(i, 1);
+    }
 
     if (msg.empty())
         return;
@@ -67,15 +74,20 @@ void Services::handleCommand(int client_fd, std::string &msg)
 
     if (it != command_map.end())
     {
+        if (!client.hasSentFirstCommand())
+        {
+            std::cout << "[SERVICE] Client " << client_fd << " sent their first command." << std::endl;
+            client.setCommandTerminators(terminators);
+            client.setSentFirstCommand();
+        }
+
         std::cout << "[SERVICE] Handling command: [" << command << "] with params: " << params << std::endl;
 
-        if (!isAuth(client, command)) {
-            return;
-        }
+        if (!client.isConnected()) return;
 
-        if (!isRegistered(client, command)) {
-            return;
-        }
+        if (!isAuth(client, command)) return;
+
+        if (!isRegistered(client, command)) return;
 
         (this->*(it->second))(client, params);
         return;

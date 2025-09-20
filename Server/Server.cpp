@@ -294,26 +294,10 @@ void Server::dmClient(Client& client, int code, const std::string &message) {
     response += (client.hasNick() ? client.getNick() : "*");
 
     // Add the trailing message
-    response += " :" + message + "\r\n";
+    response += " :" + message + client.getCommandTerminators();
 
     if (send(client.getFd(), response.c_str(), response.size(), 0) < 0) {
         std::cerr << "[SERVER] Failed to send message to fd "
                   << client.getFd() << std::endl;
     }
 }
-
-// void Server::dmClient(Client& client, int status, const std::string &message)
-// {
-//     std::string prefixed_message = ":ircserv " + std::to_string(status) + " ";
-
-//     if (client.hasNick()) {
-//         prefixed_message += ":" + client.getNick() + " " + message;
-//     } else {
-//         prefixed_message += ":ircserv " + message;
-//     }
-
-//     if (send(client.getFd(), prefixed_message.c_str(), prefixed_message.length(), 0) < 0)
-//     {
-//         std::cerr << "[SERVER] Failed to send DM to fd " << client.getFd() << std::endl;
-//     }
-// }

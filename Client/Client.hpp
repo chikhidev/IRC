@@ -10,8 +10,11 @@ class Client {
     std::string nickname;
     std::string username;
     std::string realname;
+    bool _connected;
     bool _isAuthenticated;
     bool _isRegistered;
+    bool _sent_first_command;
+    std::string command_terminators;
 
 public:
 
@@ -24,7 +27,8 @@ public:
     socklen_t getAddrLen();
     std::string getNick() const;
     std::string getUsername() const;
-        
+    std::string getCommandTerminators() const;
+    
     void setAddr(sockaddr_in);
     void setAddrLen(socklen_t);
     void setFd(int);
@@ -33,10 +37,15 @@ public:
     void setNickname(const std::string &);
     void setUsername(const std::string &);
     void setRealname(const std::string &);
+    void disconnect();
+    void setCommandTerminators(const std::string &);
+    void setSentFirstCommand();
 
     bool hasNick() const;
     bool isRegistered() const;
     bool isAuthenticated() const;
+    bool isConnected() const;
+    bool hasSentFirstCommand() const;
 
 };
 

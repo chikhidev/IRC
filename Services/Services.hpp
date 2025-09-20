@@ -14,6 +14,7 @@ class Services {
 
     Server *server;
     std::map<std::string, void (Services::*)(Client&, std::string&)> command_map;
+
 public:
     Services(Server *);
     ~Services();

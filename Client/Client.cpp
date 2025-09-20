@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(): addr_len(sizeof(addr)), fd(-1), _isAuthenticated(false), _isRegistered(false) {
+Client::Client(): addr_len(sizeof(addr)), fd(-1), _isAuthenticated(false), _isRegistered(false), _connected(true), _sent_first_command(false) {
     memset(&addr, 0, sizeof(addr));
 }
 
@@ -10,12 +10,11 @@ Client::Client(int socket_fd, sockaddr_in address, socklen_t length) {
     addr_len = length;
     _isRegistered = false;
     _isAuthenticated = false;
+    _connected = true;
+    _sent_first_command = false;
 }
 
-Client::~Client() {
-    // Don't close the fd here since the Server class manages the socket
-    // The socket will be closed by the Server when removing the client
-}
+Client::~Client() {}
 
 void Client::setAddr(sockaddr_in address) {
     memcpy(&addr, &address, sizeof(address));
@@ -79,4 +78,31 @@ std::string Client::getUsername() const {
 
 bool Client::hasNick() const {
     return !nickname.empty();
+}
+
+void Client::disconnect() {
+    _connected = false;
+}
+
+bool Client::isConnected() const {
+    return _connected;
+}
+
+void Client::setCommandTerminators(const std::string &terminators) {
+    command_terminators = terminators;
+}
+
+std::string Client::getCommandTerminators() const {
+    if (command_terminators.empty()) {
+        return "\r\n";
+    }
+    return command_terminators;
+}
+
+bool Client::hasSentFirstCommand() const {
+    return _sent_first_command;
+}
+
+void Client::setSentFirstCommand() {
+    _sent_first_command = true;
 }
