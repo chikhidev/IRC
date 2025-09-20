@@ -3,7 +3,10 @@
 
 #include "../shared/libs.hpp"
 
+class Server;
+
 class Client {
+    Server* server;
     sockaddr_in addr;
     socklen_t addr_len;
     int fd;
@@ -19,7 +22,7 @@ class Client {
 public:
 
     Client();
-    Client(int, sockaddr_in, socklen_t);
+    Client(int, sockaddr_in, socklen_t, Server*);
     ~Client();
 
     int getFd() const;
@@ -41,6 +44,7 @@ public:
     void disconnect();
     void setCommandTerminators(const std::string &);
     void setSentFirstCommand();
+    void sendMessage(Client&, const std::string&);
 
     bool hasNick() const;
     bool isRegistered() const;

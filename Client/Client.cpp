@@ -1,10 +1,11 @@
+#include "../Server/Server.hpp"
 #include "Client.hpp"
 
-Client::Client(): addr_len(sizeof(addr)), fd(-1), _isAuthenticated(false), _isRegistered(false), _connected(true), _sent_first_command(false) {
+Client::Client(): addr_len(sizeof(addr)), fd(-1), _isAuthenticated(false), _isRegistered(false), _connected(true), _sent_first_command(false), server(NULL) {
     memset(&addr, 0, sizeof(addr));
 }
 
-Client::Client(int socket_fd, sockaddr_in address, socklen_t length) {
+Client::Client(int socket_fd, sockaddr_in address, socklen_t length, Server* srv) {
     fd = socket_fd;
     memcpy(&addr, &address, sizeof(address));
     addr_len = length;
@@ -12,6 +13,7 @@ Client::Client(int socket_fd, sockaddr_in address, socklen_t length) {
     _isAuthenticated = false;
     _connected = true;
     _sent_first_command = false;
+    server = srv;
 }
 
 Client::~Client() {}
@@ -109,4 +111,18 @@ bool Client::hasSentFirstCommand() const {
 
 void Client::setSentFirstCommand() {
     _sent_first_command = true;
+}
+
+/*
+* send a message to another client, perspective of this client
+*/
+void Client::sendMessage(Client& receiver, const std::string& message) {
+    if (!server) {
+        throw std::runtime_error("Server reference is null");
+    }
+
+    std::string formatted_client = nickname + "!" + username + "@localhost";
+
+    std::string formatted_message = formatted_client + " " + message + getCommandTerminators();
+    server->sendMessage(receiver, formatted_message);
 }

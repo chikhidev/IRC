@@ -40,6 +40,7 @@ public:
 
     void sendToAllClients(const std::string &);
     void dmClient(Client&, int status, const std::string &);
+    void sendMessage(Client&, const std::string&);
 
     bool isClientRegistered(int) const;
     void registerClient(int);
@@ -48,9 +49,13 @@ public:
 
     void createChannel(const std::string &, Client&);
     void removeChannel(const std::string &);
+    void addClientToChannel(const std::string &, Client &);
+    void removeClientFromChannel(const std::string &, Client &);
     
     Client& getClient(int);
     Channel& getChannel(const std::string&);
+
+    bool channelExists(const std::string&) const;
 };
 
 

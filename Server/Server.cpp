@@ -186,7 +186,7 @@ void Server::createClient(int fd)
         return;
     }
 
-    Client new_client(new_socket, client_addr, addr_len);
+    Client new_client(new_socket, client_addr, addr_len, this);
 
     clients[new_socket] = new_client;
     addPollFd(new_socket);
@@ -211,38 +211,6 @@ Client& Server::getClient(int fd)
 {
     return clients[fd];
 }
-
-
-/*
-* Public method for the service to access a channel by name
-*/
-Channel& Server::getChannel(const std::string& name)
-{
-    std::map<std::string, Channel>::iterator it = channels.find(name);
-    if (it == channels.end()) {
-        throw std::runtime_error("Channel not found: " + name);
-    }
-    return it->second;
-}
-
-
-/*
-* Public method for the service to add a channel
-*/
-void Server::createChannel(const std::string& name, Client& creator)
-{
-    channels[name] = Channel(name, creator);
-}
-
-
-/*
-* Public method for the service to remove a channel
-*/
-void Server::removeChannel(const std::string& name)
-{
-    channels.erase(name);
-}
-
 
 /*
 * Main server loop:
@@ -304,6 +272,8 @@ void Server::loop()
     }
 }
 
+
+/*-------------------------Messaging-------------------------*/
 /*
 * Send a message to all connected clients at once
 */
@@ -322,7 +292,7 @@ void Server::sendToAllClients(const std::string &message)
 }
 
 /*
-* Send a direct message to a specific client
+* Send a direct message to a specific client, perspective of ircserv
 */
 
 void Server::dmClient(Client& client, int code, const std::string &message) {
@@ -335,8 +305,76 @@ void Server::dmClient(Client& client, int code, const std::string &message) {
 
     response += " :" + message + client.getCommandTerminators();
 
-    if (send(client.getFd(), response.c_str(), response.size(), 0) < 0) {
+    this->sendMessage(client, response);
+}
+
+/*
+* send a message to an FD
+*/
+void Server::sendMessage(Client& client, const std::string& message) {
+    if (send(client.getFd(), message.c_str(), message.size(), 0) < 0) {
         std::cerr << "[SERVER] Failed to send message to fd "
-                  << client.getFd() << std::endl;
+                  << fd << std::endl;
     }
 }
+/*--------------------------------------------------------------*/
+
+
+
+/*--------------------- Channel Management ---------------------*/
+/*
+* Public method for the service to access a channel by name
+*/
+Channel& Server::getChannel(const std::string& name)
+{
+    std::map<std::string, Channel>::iterator it = channels.find(name);
+    if (it == channels.end()) {
+        throw std::runtime_error("Channel not found: " + name);
+    }
+    return it->second;
+}
+
+
+/*
+* Public method for the service to add a channel
+*/
+void Server::createChannel(const std::string& name, Client& creator)
+{
+    channels[name] = Channel(name, creator, this);
+}
+
+
+/*
+* Public method for the service to remove a channel
+*/
+void Server::removeChannel(const std::string& name)
+{
+    channels.erase(name);
+}
+
+/*
+* Public method for the service to check if a channel exists
+*/
+bool Server::channelExists(const std::string& name) const
+{
+    return channels.find(name) != channels.end();
+}
+
+/*
+* Public method for the service to add a client to a channel
+*/
+void Server::addClientToChannel(const std::string& channel_name, Client& client)
+{
+    Channel& channel = getChannel(channel_name);
+    channel.addMember(client);
+}
+
+/*
+* Public method for the service to remove a client from a channel
+*/
+void Server::removeClientFromChannel(const std::string& channel_name, Client& client)
+{
+    Channel& channel = getChannel(channel_name);
+    channel.removeMember(client);
+}
+/*--------------------------------------------------------------*/
