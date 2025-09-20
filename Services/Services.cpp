@@ -19,7 +19,7 @@ Services::~Services() {}
 */
 bool Services::isAuth(Client &client, std::string &command)
 {
-    if (command != "PASS" && !client.isAuthenticated())
+    if (command != "PASS" && command != "QUIT" && !client.isAuthenticated())
     {
         server->dmClient(client, 451, "You must be authenticated to use this command");
         return false;
@@ -51,6 +51,21 @@ bool Services::isRegistered(Client &client, std::string &command)
 }
 
 /*
+* Params split by space
+*/
+std::vector<std::string> split_params(const std::string &params) {
+    std::vector<std::string> result;
+    std::istringstream iss(params);
+    std::string token;
+    while (std::getline(iss, token, ' ')) {
+        if (!token.empty()) {
+            result.push_back(token);
+        }
+    }
+    return result;
+}
+
+/*
 * Handle incoming commands from clients
 */
 void Services::handleCommand(int client_fd, std::string &msg)
@@ -72,10 +87,13 @@ void Services::handleCommand(int client_fd, std::string &msg)
     std::getline(iss, command, ' ');
     std::string params;
     std::getline(iss, params);
-    
+
     Client &client = server->getClient(client_fd);
 
-    std::map<std::string, void (Services::*)(Client&, std::string&)>::iterator it = command_map.find(command);
+    if (!client.isConnected()) return;
+
+    std::vector<std::string> param_list = split_params(params);
+    std::map<std::string, void (Services::*)(Client&, std::vector<std::string>&)>::iterator it = command_map.find(command);
 
     if (it != command_map.end())
     {
@@ -86,6 +104,7 @@ void Services::handleCommand(int client_fd, std::string &msg)
             client.setSentFirstCommand();
         }
 
+        std::cout << "[SERVICE] size of params: " << param_list.size() << std::endl;
         std::cout << "[SERVICE] infos about the client " << client_fd << " :" << std::endl;
         std::cout << "[SERVICE]  - Nick: " << client.getNick() << std::endl;
         std::cout << "[SERVICE]  - Username: " << client.getUsername() << std::endl;
@@ -93,16 +112,18 @@ void Services::handleCommand(int client_fd, std::string &msg)
         std::cout << "[SERVICE]  - Authenticated: " << (client.isAuthenticated() ? "Yes" : "No") << std::endl;
         std::cout << "[SERVICE]  - Registered: " << (client.isRegistered() ? "Yes" : "No") << std::endl;
 
-        std::cout << "[SERVICE] Handling command: [" << command << "] with params: " << params << std::endl;
+        std::cout << "[SERVICE] Handling command: [" << command << "] with params: [";
+        for (const auto &param : param_list) {
+            std::cout << param << " ";
+        }
+        std::cout << "]" << std::endl;
         std::cout << std::endl;
-
-        if (!client.isConnected()) return;
 
         if (!isAuth(client, command)) return;
 
         if (!isRegistered(client, command)) return;
 
-        (this->*(it->second))(client, params);
+        (this->*(it->second))(client, param_list);
         return;
     }
 

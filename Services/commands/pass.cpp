@@ -5,9 +5,15 @@
 /*
 * Handle the PASS command
 */
-void Services::pass(Client &client, std::string &params)
+void Services::pass(Client &client, std::vector<std::string> &params)
 {
-    std::string password = params;
+    if (params.empty())
+    {
+        server->dmClient(client, 461, "Not enough parameters");
+        return;
+    }
+
+    std::string password = params[0];
     if (server->isPasswordMatching(password))
     {
         if (client.isAuthenticated()) {

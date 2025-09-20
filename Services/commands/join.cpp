@@ -2,6 +2,9 @@
 #include "../../Server/Server.hpp"
 #include "../../Client/Client.hpp"
 
-void Services::join(Client &client, std::string &params) {
+/*
+* Handle the JOIN command: <channel>
+*/
+void Services::join(Client &client, std::vector<std::string> &params) {
     
 }

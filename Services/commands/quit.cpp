@@ -2,12 +2,18 @@
 #include "../../Server/Server.hpp"
 #include "../../Client/Client.hpp"
 
-void Services::quit(Client &client, std::string &params) {
-    
-    (void)params;
+/*
+* Handle the QUIT command: [<message>]
+*/
+void Services::quit(Client &client, std::vector<std::string> &params) {
+    std::string quit_message;
+    if (!params.empty()) {
+        quit_message = params[0];
+    }
 
-    server->dmClient(client, 221, "Closing Link, Bye!");
+    server->dmClient(client, 221, "Goodbye! " + quit_message);
     std::cout << "[SERVICE] Client with fd " << client.getFd() << " has quit." << std::endl;
-    
+
     client.disconnect();
+    server->removeClient(client);
 }

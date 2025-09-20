@@ -2,28 +2,29 @@
 #include "../../Server/Server.hpp"
 #include "../../Client/Client.hpp"
 
-void Services::user(Client& client, std::string &params) {
-    std::istringstream iss(params);
-    std::string username, mode, unused, realname;
+/*
+* Handle the USER command: <username> <hostname (ignored)> <servername (ignored)> :<realname>
+*/
+void Services::user(Client& client, std::vector<std::string>& params) {
+    size_t params_size = params.size();
 
-    if (!(iss >> username >> mode >> unused)) {
+    if (params_size < 4) {
         server->dmClient(client, 461, "USER :Not enough parameters");
         return;
     }
 
-    // Get the realname (rest of the line)
-    std::getline(iss, realname);
-    if (!realname.empty() && realname[0] == ' ')
-        realname.erase(0, 1);
-    if (!realname.empty() && realname[0] == ':')
+    std::string username = params[0];
+    std::string realname = params[3];
+
+    for (size_t i = 4; i < params_size; i++) {
+        realname += " " + params[i];
+    }
+
+    if (realname[0] == ':')
         realname.erase(0, 1);
 
     client.setUsername(username);
     client.setRealname(realname);
-
-
     client.setRegistered(true);
-
-    // Send registration burst
     server->dmClient(client, 001, "Welcome to the IRC network, " + client.getNick() + "!" + client.getUsername() + "@localhost");
 }

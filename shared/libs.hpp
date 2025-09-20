@@ -10,8 +10,12 @@
 #include <sys/socket.h>
 #include <poll.h>
 #include <map>
+#include <vector>
 #include <algorithm>
 #include <fcntl.h>
 #include <errno.h>
+
+
+#define NICK_LIMIT 9
 
 #endif

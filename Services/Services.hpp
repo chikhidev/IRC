@@ -13,7 +13,7 @@ class Client;
 class Services {
 
     Server *server;
-    std::map<std::string, void (Services::*)(Client&, std::string&)> command_map;
+    std::map<std::string, void (Services::*)(Client&, std::vector<std::string>&)> command_map;
 
 public:
     Services(Server *);
@@ -24,11 +24,11 @@ public:
     bool isAuth(Client&, std::string&);
     bool isRegistered(Client&, std::string&);
 
-    void pass(Client&, std::string&);
-    void nick(Client&, std::string&);
-    void user(Client&, std::string&);
-    void quit(Client&, std::string&);
-    void join(Client&, std::string&);
+    void pass(Client&, std::vector<std::string>&);
+    void nick(Client&, std::vector<std::string>&);
+    void user(Client&, std::vector<std::string>&);
+    void quit(Client&, std::vector<std::string>&);
+    void join(Client&, std::vector<std::string>&);
 };
 
 #endif
