@@ -1,5 +1,7 @@
 #include "Server.hpp"
+#include "../Client/Client.hpp"
 #include "../Services/Services.hpp"
+#include "../Channel/Channel.hpp"
 
 Server::Server(int p) : poll_fds(NULL), poll_count(0)
 {
@@ -202,6 +204,44 @@ bool Server::isPasswordMatching(const std::string &pass) const
 }
 
 
+/*
+* Public method for the service to access a client by fd
+*/
+Client& Server::getClient(int fd)
+{
+    return clients[fd];
+}
+
+
+/*
+* Public method for the service to access a channel by name
+*/
+Channel& Server::getChannel(const std::string& name)
+{
+    std::map<std::string, Channel>::iterator it = channels.find(name);
+    if (it == channels.end()) {
+        throw std::runtime_error("Channel not found: " + name);
+    }
+    return it->second;
+}
+
+
+/*
+* Public method for the service to add a channel
+*/
+void Server::createChannel(const std::string& name, Client& creator)
+{
+    channels[name] = Channel(name, creator);
+}
+
+
+/*
+* Public method for the service to remove a channel
+*/
+void Server::removeChannel(const std::string& name)
+{
+    channels.erase(name);
+}
 
 
 /*
@@ -210,6 +250,7 @@ bool Server::isPasswordMatching(const std::string &pass) const
 * - Accepts new connections
 * - Reads data from clients
 * - Handles client disconnections
+* - Delegates command processing to the Services class
 */
 void Server::loop()
 {

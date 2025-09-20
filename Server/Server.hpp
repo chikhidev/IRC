@@ -2,9 +2,10 @@
 #define SERVER_HPP
 
 #include "../shared/libs.hpp"
-#include "../Client/Client.hpp"
 
 class Services;
+class Channel;
+class Client;
 
 class Server {
     int port;
@@ -15,14 +16,16 @@ class Server {
     int poll_count;
 
     Services *services;
+    std::map<int, Client> clients;
+    std::map<std::string, Channel> channels;
 
+    // PRIVATE METHODS
     void addPollFd(int);
     void removePollFd(int);
     void registerClient(int, Client);
     void createClient(int);
 
 public:
-    std::map<int, Client> clients;
 
     Server(int);
     ~Server();
@@ -42,7 +45,12 @@ public:
     void registerClient(int);
     void removeClient(int);
     void removeClient(Client&);
+
+    void createChannel(const std::string &, Client&);
+    void removeChannel(const std::string &);
     
+    Client& getClient(int);
+    Channel& getChannel(const std::string&);
 };
 
 

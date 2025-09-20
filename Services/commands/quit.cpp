@@ -1,7 +1,8 @@
-#include "Services.hpp"
-#include "../Server/Server.hpp"
+#include "../Services.hpp"
+#include "../../Server/Server.hpp"
+#include "../../Client/Client.hpp"
 
-void Services::handleQuit(Client &client, std::string &params) {
+void Services::quit(Client &client, std::string &params) {
     
     (void)params;
 

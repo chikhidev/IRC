@@ -2,17 +2,19 @@ NAME=ircserv
 CC=c++
 CFLAGS=-Wall -Wextra -Werror -std=c++98 -O3
 
-SERVICES_SRC=Services/Services.cpp \
-	Services/pass.cpp \
-	Services/nick.cpp \
-	Services/user.cpp \
-	Services/quit.cpp
+SERVICES_COMMANDS=Services/commands/pass.cpp \
+	Services/commands/nick.cpp \
+	Services/commands/user.cpp \
+	Services/commands/quit.cpp \
+	Services/commands/join.cpp \
 
 SRC=Server/Server.cpp \
+	Services/Services.cpp \
 	Client/Client.cpp \
+	Channel/Channel.cpp \
 	main.cpp
 
-SRC += $(SERVICES_SRC)
+SRC += $(SERVICES_COMMANDS)
 
 OBJ=$(SRC:.cpp=.o)
 

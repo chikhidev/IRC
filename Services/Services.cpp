@@ -4,14 +4,11 @@
 
 Services::Services(Server *srv) : server(srv)
 {
-    command_map["PASS"] = &Services::handlePass;
-    command_map["NICK"] = &Services::handleNick;
-    command_map["USER"] = &Services::handleUser;
-    command_map["QUIT"] = &Services::handleQuit;
-
-    command_map["pass"] = &Services::handlePass;
-    command_map["nick"] = &Services::handleNick;
-    command_map["user"] = &Services::handleUser;
+    command_map["PASS"] = &Services::pass;
+    command_map["NICK"] = &Services::nick;
+    command_map["USER"] = &Services::user;
+    command_map["QUIT"] = &Services::quit;
+    command_map["JOIN"] = &Services::join;
 }
 
 
@@ -38,11 +35,18 @@ bool Services::isRegistered(Client &client, std::string &command)
     if (command != "PASS" &&
         command != "NICK" &&
         command != "USER" &&
-        !client.isRegistered())
+        command != "QUIT")
     {
-        server->dmClient(client, 451, "You must be registered to use this command");
-        return false;
+        if (!client.isRegistered()) {
+            server->dmClient(client, 451, "Not registered");
+            return false;
+        }
+        if (!client.hasNick()) {
+            server->dmClient(client, 431, "No nickname given");
+            return false;
+        }
     }
+
     return true;
 }
 
@@ -69,7 +73,8 @@ void Services::handleCommand(int client_fd, std::string &msg)
     std::string params;
     std::getline(iss, params);
     
-    Client &client = server->clients[client_fd];
+    Client &client = server->getClient(client_fd);
+
     std::map<std::string, void (Services::*)(Client&, std::string&)>::iterator it = command_map.find(command);
 
     if (it != command_map.end())
@@ -81,7 +86,15 @@ void Services::handleCommand(int client_fd, std::string &msg)
             client.setSentFirstCommand();
         }
 
+        std::cout << "[SERVICE] infos about the client " << client_fd << " :" << std::endl;
+        std::cout << "[SERVICE]  - Nick: " << client.getNick() << std::endl;
+        std::cout << "[SERVICE]  - Username: " << client.getUsername() << std::endl;
+        std::cout << "[SERVICE]  - Realname: " << client.getRealname() << std::endl;
+        std::cout << "[SERVICE]  - Authenticated: " << (client.isAuthenticated() ? "Yes" : "No") << std::endl;
+        std::cout << "[SERVICE]  - Registered: " << (client.isRegistered() ? "Yes" : "No") << std::endl;
+
         std::cout << "[SERVICE] Handling command: [" << command << "] with params: " << params << std::endl;
+        std::cout << std::endl;
 
         if (!client.isConnected()) return;
 

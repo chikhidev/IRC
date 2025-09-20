@@ -1,7 +1,8 @@
-#include "Services.hpp"
-#include "../Server/Server.hpp"
+#include "../Services.hpp"
+#include "../../Server/Server.hpp"
+#include "../../Client/Client.hpp"
 
-void Services::handleUser(Client& client, std::string &params) {
+void Services::user(Client& client, std::string &params) {
     std::istringstream iss(params);
     std::string username, mode, unused, realname;
 

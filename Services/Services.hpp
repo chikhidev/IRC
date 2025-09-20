@@ -24,10 +24,11 @@ public:
     bool isAuth(Client&, std::string&);
     bool isRegistered(Client&, std::string&);
 
-    void handlePass(Client&, std::string&);
-    void handleNick(Client&, std::string&);
-    void handleUser(Client&, std::string&);
-    void handleQuit(Client&, std::string&);
+    void pass(Client&, std::string&);
+    void nick(Client&, std::string&);
+    void user(Client&, std::string&);
+    void quit(Client&, std::string&);
+    void join(Client&, std::string&);
 };
 
 #endif

@@ -1,10 +1,11 @@
-#include "Services.hpp"
-#include "../Server/Server.hpp"
+#include "../Services.hpp"
+#include "../../Server/Server.hpp"
+#include "../../Client/Client.hpp"
 
 /*
 * Handle the PASS command
 */
-void Services::handlePass(Client &client, std::string &params)
+void Services::pass(Client &client, std::string &params)
 {
     std::string password = params;
     if (server->isPasswordMatching(password))

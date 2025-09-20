@@ -52,7 +52,7 @@ void Client::setAuthenticated(bool status) {
     _isAuthenticated = status;
 }
 
-void Client::setNickname(const std::string &nick) {
+void Client::setNick(const std::string &nick) {
     nickname = nick;
 }
 
@@ -74,6 +74,10 @@ std::string Client::getNick() const {
 
 std::string Client::getUsername() const {
     return username;
+}
+
+std::string Client::getRealname() const {
+    return realname;
 }
 
 bool Client::hasNick() const {

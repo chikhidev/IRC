@@ -27,6 +27,7 @@ public:
     socklen_t getAddrLen();
     std::string getNick() const;
     std::string getUsername() const;
+    std::string getRealname() const;
     std::string getCommandTerminators() const;
     
     void setAddr(sockaddr_in);
@@ -34,7 +35,7 @@ public:
     void setFd(int);
     void setRegistered(bool);
     void setAuthenticated(bool);
-    void setNickname(const std::string &);
+    void setNick(const std::string &);
     void setUsername(const std::string &);
     void setRealname(const std::string &);
     void disconnect();
