@@ -13,6 +13,9 @@ class Channel {
     Client* _operator;
     std::string topic;
     std::map<char, bool> modes;
+    std::string password;
+
+    void initModes();
 
 public:
     Channel();

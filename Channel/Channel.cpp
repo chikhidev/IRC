@@ -4,12 +4,22 @@
 
 Channel::Channel() : name(""), _operator(NULL), server(NULL) {
     std::cout << "Default Channel constructor called" << std::endl;
+    initModes();
 }
 
 Channel::Channel(const std::string &channel_name, Client &creator, Server *srv) : server(srv) { 
     name = channel_name;
     _operator = &creator;
     members[creator.getFd()] = &creator;
+    initModes();
+}
+
+void Channel::initModes() {
+    modes['i'] = false; // Invite-only
+    modes['t'] = false; // Topic settable by channel operator only
+    modes['k'] = false; // Key (password) required to join
+    modes['o'] = false; // Operator status
+    modes['l'] = false; // User limit
 }
 
 Channel::~Channel() {}
