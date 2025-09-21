@@ -29,6 +29,8 @@ public:
     void user(Client&, std::vector<std::string>&);
     void quit(Client&, std::vector<std::string>&);
     void join(Client&, std::vector<std::string>&);
+    void part(Client&, std::vector<std::string>&);
+    void names(Client&, std::vector<std::string>&);
 };
 
 #endif

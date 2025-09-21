@@ -1,4 +1,5 @@
 #include "../Server/Server.hpp"
+#include "../Channel/Channel.hpp"
 #include "Client.hpp"
 
 Client::Client(): addr_len(sizeof(addr)), fd(-1), _isAuthenticated(false), _isRegistered(false), _connected(true), _sent_first_command(false), server(NULL) {
@@ -16,7 +17,9 @@ Client::Client(int socket_fd, sockaddr_in address, socklen_t length, Server* srv
     server = srv;
 }
 
-Client::~Client() {}
+Client::~Client() {
+    quitAllChannels();
+}
 
 void Client::setAddr(sockaddr_in address) {
     memcpy(&addr, &address, sizeof(address));
@@ -125,4 +128,32 @@ void Client::sendMessage(Client& receiver, const std::string& message) {
 
     std::string formatted_message = formatted_client + " " + message + getCommandTerminators();
     server->sendMessage(receiver, formatted_message);
+}
+
+
+void Client::addToJoinedChannels(const std::string& channel_name) {
+    joined_channels.push_back(channel_name);
+}
+
+void Client::removeFromJoinedChannels(const std::string& channel_name) {
+    for (std::vector<std::string>::iterator it = joined_channels.begin(); it != joined_channels.end(); ++it) {
+        if (*it == channel_name) {
+            joined_channels.erase(it);
+            return;
+        }
+    }
+}
+
+void Client::quitAllChannels() {
+    for (std::vector<std::string>::iterator it = joined_channels.begin(); it != joined_channels.end(); ++it) {
+        if (server->channelExists(*it)) {
+            Channel& channel = server->getChannel(*it);
+            if (channel.isMember(*this)) {
+                channel.removeMember(*this);
+                std::string quit_message = ":" + getNick() + "!" + getUsername() + "@localhost QUIT :Client disconnected";
+                channel.broadcastToMembers(*this, quit_message);
+            }
+        }
+    }
+    joined_channels.clear();
 }

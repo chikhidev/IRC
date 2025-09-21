@@ -4,6 +4,7 @@
 #include "../shared/libs.hpp"
 
 class Server;
+class Channel;
 
 class Client {
     Server* server;
@@ -18,6 +19,7 @@ class Client {
     bool _isRegistered;
     bool _sent_first_command;
     std::string command_terminators;
+    std::vector<std::string> joined_channels;
 
 public:
 
@@ -45,6 +47,9 @@ public:
     void setCommandTerminators(const std::string &);
     void setSentFirstCommand();
     void sendMessage(Client&, const std::string&);
+    void addToJoinedChannels(const std::string&);
+    void removeFromJoinedChannels(const std::string&);
+    void quitAllChannels();
 
     bool hasNick() const;
     bool isRegistered() const;

@@ -141,6 +141,7 @@ void Server::removeClient(int client_fd)
     std::map<int, Client>::iterator it = clients.find(client_fd);
     if (it != clients.end())
     {
+        it->second.disconnect();
         clients.erase(it);
     }
     
@@ -161,6 +162,7 @@ void Server::removeClient(Client& client)
     std::map<int, Client>::iterator it = clients.find(client_fd);
     if (it != clients.end())
     {
+        it->second.disconnect();
         clients.erase(it);
     }
     

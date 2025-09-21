@@ -13,9 +13,11 @@ void Services::join(Client &client, std::vector<std::string> &params) {
     }
 
     std::string channel_name = params[0];
-    if (channel_name[0] == '#') {
-        channel_name.erase(0, 1); // Remove the '#' character
+    if (channel_name[0] != '#') {
+        server->dmClient(client, 403, "JOIN :No such channel");
+        return;
     }
+    channel_name.erase(0, 1);
 
     try {
         
@@ -35,6 +37,8 @@ void Services::join(Client &client, std::vector<std::string> &params) {
         } else {
             server->dmClient(client, 332, "#" + channel_name + " :" + topic);
         }
+
+        _channel.listMembers(client);
         
     } catch (const std::exception &e) {
         server->dmClient(client, 403, "JOIN :" + std::string(e.what()));

@@ -27,9 +27,9 @@ public:
     bool isMember(const Client &) const;
 
     void broadcastToMembers(Client &, const std::string &);
-    void listMembers() const;
+    void listMembers(Client &) const;
 
-
+    bool isEmpty() const;
 };
 
 #endif

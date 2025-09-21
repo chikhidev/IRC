@@ -7,6 +7,8 @@ SERVICES_COMMANDS=Services/commands/pass.cpp \
 	Services/commands/user.cpp \
 	Services/commands/quit.cpp \
 	Services/commands/join.cpp \
+	Services/commands/part.cpp \
+	Services/commands/names.cpp \
 
 SRC=Server/Server.cpp \
 	Services/Services.cpp \

@@ -23,12 +23,27 @@ void Channel::addMember(Client &client) {
         throw std::runtime_error("Client is already a member of the channel");
     }
     members[client.getFd()] = &client;
+    client.addToJoinedChannels(name);
 }
 
 void Channel::removeMember(Client &client) {
     std::map<int, Client*>::iterator it = members.find(client.getFd());
     if (it != members.end()) {
+
+        if (it->second == _operator) {
+            broadcastToMembers(client, "NOTICE #" + name + " :The channel operator has left the channel, the channel is gone");
+            server->removeChannel(name);
+            return;
+        }
+
         members.erase(it);
+        client.removeFromJoinedChannels(name);
+
+        if (members.empty()) {
+            std::cout << "[CHANNEL] Channel " << name << " is empty. Removing it from server." << std::endl;
+            server->removeChannel(name);
+        }
+
     } else {
         throw std::runtime_error("Client is not a member of the channel");
     }
@@ -59,17 +74,31 @@ void Channel::broadcastToMembers(Client &sender, const std::string &message) {
 /*
 * List all members of the channel
 */
-void Channel::listMembers() const {
+void Channel::listMembers(Client &client) const {
     if (!server) {
         throw std::runtime_error("Server reference is null");
     }
 
     std::cout << "Members of channel " << name << ":" << std::endl;
+
+    std::string response = "#" + name + " :";
+
     for (std::map<int, Client*>::const_iterator it = members.begin(); it != members.end(); ++it) {
-        server->dmClient(*(it->second), 0, "Members of channel " + name + ":");
+        if (it->second == _operator) {
+            response += "@" + it->second->getNick() + " ";
+        } else {
+            response += it->second->getNick() + " ";
+        }
     }
+
+    server->dmClient(client, 353, response);
+    server->dmClient(client, 366, "#" + name + " :End of /NAMES list.");
 }
 
 std::string Channel::getTopic() const {
     return topic;
+}
+
+bool Channel::isEmpty() const {
+    return members.empty();
 }
