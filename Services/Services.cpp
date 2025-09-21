@@ -202,8 +202,6 @@ void Services::handleCommand(int client_fd)
     }
 
     for (size_t i = 0; i < commands.size(); ++i)
-    {
         processCommandLine(client, client_fd, commands[i]);
-    }
 }
 

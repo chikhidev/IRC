@@ -34,6 +34,13 @@ void Services::names(Client &client, std::vector<std::string> &params)
     }
 
     Channel &channel = server->getChannel(channel_name);
+
+    if (!channel.isMember(client)) {
+        server->dmClient(client, 442, channel_name + " :You're not on that channel");
+        server->dmClient(client, 366, channel_name + " :End of /NAMES list");
+        return;
+    }
+
     channel.listMembers(client);
 }
 /*--------------------------------------------------------------*/

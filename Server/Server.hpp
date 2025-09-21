@@ -19,7 +19,7 @@ class Server {
     Services *services;
     std::map<int, Client*> clients;
     std::map<std::string, Client*> unique_nicks;
-    std::map<std::string, Channel> channels;
+    std::map<std::string, Channel*> channels;
 
     // PRIVATE METHODS
     void addPollFd(int);

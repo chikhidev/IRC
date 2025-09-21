@@ -34,6 +34,11 @@ void Services::join(Client &client, std::vector<std::string> &params) {
 
         Channel &_channel = server->getChannel(channel_name);
 
+        if (_channel.isMember(client)) {
+            server->dmClient(client, 443, "JOIN :You're already on that channel");
+            return;
+        }
+
         _channel.broadcastToMembers(client, "JOIN :#" + channel_name);
 
         std::string topic = _channel.getTopic();

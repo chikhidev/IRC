@@ -47,12 +47,19 @@ Server::Server(int p) : poll_fds(NULL), poll_count(0)
 
 Server::~Server()
 {
-    std::map<int, Client*>::iterator it = clients.begin();
-    for (; it != clients.end(); ++it) {
-        it->second->disconnect();
-        it->second->quitAllChannels();
-        delete it->second;
+    std::map<int, Client*>::iterator cl_it = clients.begin();
+    for (; cl_it != clients.end(); ++cl_it) {
+        cl_it->second->disconnect();
+        cl_it->second->quitAllChannels();
+        delete cl_it->second;
     }
+    clients.clear();
+
+    std::map<std::string, Channel*>::iterator ch_it = channels.begin();
+    for (; ch_it != channels.end(); ++ch_it) {
+        delete ch_it->second;
+    }
+    channels.clear();
 
     close(fd);
     delete[] poll_fds;
@@ -341,11 +348,11 @@ void Server::sendMessage(Client& client, const std::string& message) {
 */
 Channel& Server::getChannel(const std::string& name)
 {
-    std::map<std::string, Channel>::iterator it = channels.find(name);
+    std::map<std::string, Channel*>::iterator it = channels.find(name);
     if (it == channels.end()) {
         throw std::runtime_error("Channel not found: " + name);
     }
-    return it->second;
+    return *it->second;
 }
 
 
@@ -354,7 +361,7 @@ Channel& Server::getChannel(const std::string& name)
 */
 void Server::createChannel(const std::string& name, Client& creator)
 {
-    channels[name] = Channel(name, creator, this);
+    channels[name] = new Channel(name, creator, this);
 }
 
 
@@ -363,7 +370,12 @@ void Server::createChannel(const std::string& name, Client& creator)
 */
 void Server::removeChannel(const std::string& name)
 {
-    channels.erase(name);
+    std::map<std::string, Channel*>::iterator it = channels.find(name);
+    if (it == channels.end()) {
+        throw std::runtime_error("Channel not found: " + name);
+    }
+    delete it->second;
+    channels.erase(it);
 }
 
 /*

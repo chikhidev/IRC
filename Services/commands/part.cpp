@@ -35,6 +35,12 @@ void Services::part(Client &client, std::vector<std::string> &params) {
         }
 
         Channel &_channel = server->getChannel(channel_name);
+
+        if (!_channel.isMember(client)) {
+            server->dmClient(client, 442, "PART :You're not on that channel");
+            return;
+        }
+
         _channel.broadcastToMembers(client, "PART :#" + channel_name + (reason.empty() ? "" : " (" + reason + ")"));
         _channel.removeMember(client);
 
