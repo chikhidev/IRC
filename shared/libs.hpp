@@ -16,6 +16,7 @@
 #include <errno.h>
 
 
+#define MAX_COMMAND_LENGTH 1024
 #define NICK_LIMIT 9
 
 #endif

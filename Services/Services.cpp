@@ -11,6 +11,7 @@ Services::Services(Server *srv) : server(srv)
     command_map["JOIN"] = &Services::join;
     command_map["PART"] = &Services::part;
     command_map["NAMES"] = &Services::names;
+    command_map["CAP"] = &Services::cap;
 }
 
 
@@ -75,34 +76,88 @@ std::vector<std::string> split_params(const std::string &params) {
     return result;
 }
 
+std::string cmd_shot(int fd) {
+    char buffer[512] = {0};
+    int readed_bytes = read(fd, buffer, 512);
+    std::string msg(buffer, readed_bytes);
+    return msg;
+}
+
+/*
+* Strip trailing non-printable characters from a command string
+*/
+std::string stripTrailingTerminators(std::string &cmd, Client &client)
+{
+    size_t end = cmd.size();
+    while (end > 0 && !isprint(static_cast<unsigned char>(cmd[end - 1])))
+    {
+        --end;
+    }
+    terminators = cmd.substr(end);
+    cmd.erase(end);
+
+    if (!client.hasSentFirstCommand())
+    {
+        client.setCommandTerminators(terminators);
+        client.setSentFirstCommand();
+    }
+
+    return cmd;
+}
+
+void debug_client(Client &client, int client_fd, const std::string &command, const std::vector<std::string> &param_list) {
+    std::cout << "[SERVICE] size of params: " << param_list.size() << std::endl;
+    std::cout << "[SERVICE] infos about the client " << client_fd << " :" << std::endl;
+    std::cout << "[SERVICE]  - Nick: " << client.getNick() << std::endl;
+    std::cout << "[SERVICE]  - Username: " << client.getUsername() << std::endl;
+    std::cout << "[SERVICE]  - Realname: " << client.getRealname() << std::endl;
+    std::cout << "[SERVICE]  - Authenticated: " << (client.isAuthenticated() ? "Yes" : "No") << std::endl;
+    std::cout << "[SERVICE]  - Registered: " << (client.isRegistered() ? "Yes" : "No") << std::endl;
+
+    std::cout << "[SERVICE] Handling command: [" << command << "] with params: [";
+    for (const auto &param : param_list) {
+        std::cout << param << " ";
+    }
+    std::cout << "]" << std::endl;
+    std::cout << std::endl;
+}
+
 /*
 * Handle incoming commands from clients
 */
-void Services::handleCommand(int client_fd, std::string &msg)
+void Services::handleCommand(int client_fd)
 {
     if (!server) {
         throw std::runtime_error("Server reference is null");
     }
 
-    std::string terminators;
-    for (int i = msg.size() - 1; i >= 0; --i)
+    Client &client = server->getClient(client_fd);
+    std::string _cmd = cmd_shot(client_fd);
+    std::stringstream &cmdStream = client.getCommandStream();
+    
+    if (!_cmd.empty() && _cmd.back() != '\n')
     {
-        if ((msg[i] >= 32 && msg[i] <= 126))
-            break;
-        terminators = msg[i] + terminators;
-        msg.erase(i, 1);
+        cmdStream << _cmd;
+
+        if (cmdStream.str().length() > MAX_COMMAND_LENGTH) {
+            server->dmClient(client, 414, "Command too long");
+            client.clearCommandStream();
+        }
+
+        return; // here we stop to give other clients their chances to
     }
 
-    if (msg.empty())
+    _cmd = cmdStream.str() + _cmd;
+    _cmd = stripTrailingTerminators(_cmd, client);
+
+    if (_cmd.empty())
         return;
 
-    std::istringstream iss(msg);
+    std::istringstream iss(_cmd);
     std::string command;
     std::getline(iss, command, ' ');
     std::string params;
     std::getline(iss, params);
-
-    Client &client = server->getClient(client_fd);
 
     if (!client.isConnected()) return;
 
@@ -111,33 +166,11 @@ void Services::handleCommand(int client_fd, std::string &msg)
 
     if (it != command_map.end())
     {
-        if (!client.hasSentFirstCommand())
-        {
-            std::cout << "[SERVICE] Client " << client_fd << " sent their first command." << std::endl;
-            client.setCommandTerminators(terminators);
-            client.setSentFirstCommand();
-        }
-
-        std::cout << "[SERVICE] size of params: " << param_list.size() << std::endl;
-        std::cout << "[SERVICE] infos about the client " << client_fd << " :" << std::endl;
-        std::cout << "[SERVICE]  - Nick: " << client.getNick() << std::endl;
-        std::cout << "[SERVICE]  - Username: " << client.getUsername() << std::endl;
-        std::cout << "[SERVICE]  - Realname: " << client.getRealname() << std::endl;
-        std::cout << "[SERVICE]  - Authenticated: " << (client.isAuthenticated() ? "Yes" : "No") << std::endl;
-        std::cout << "[SERVICE]  - Registered: " << (client.isRegistered() ? "Yes" : "No") << std::endl;
-
-        std::cout << "[SERVICE] Handling command: [" << command << "] with params: [";
-        for (const auto &param : param_list) {
-            std::cout << param << " ";
-        }
-        std::cout << "]" << std::endl;
-        std::cout << std::endl;
-
+        debug_client(client, client_fd, command, param_list);
         if (!isAuth(client, command)) return;
-
         if (!isRegistered(client, command)) return;
-
         (this->*(it->second))(client, param_list);
+        client.clearCommandStream();
         return;
     }
 

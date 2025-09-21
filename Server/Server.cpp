@@ -1,6 +1,6 @@
 #include "Server.hpp"
-#include "../Client/Client.hpp"
 #include "../Services/Services.hpp"
+#include "../Client/Client.hpp"
 #include "../Channel/Channel.hpp"
 
 Server::Server(int p) : poll_fds(NULL), poll_count(0)
@@ -47,6 +47,13 @@ Server::Server(int p) : poll_fds(NULL), poll_count(0)
 
 Server::~Server()
 {
+    std::map<int, Client*>::iterator it = clients.begin();
+    for (; it != clients.end(); ++it) {
+        it->second->disconnect();
+        it->second->quitAllChannels();
+        delete it->second;
+    }
+
     close(fd);
     delete[] poll_fds;
     delete services;
@@ -138,12 +145,13 @@ void Server::removeClient(int client_fd)
     std::cout << "[SERVER] Removing client: " << client_fd << std::endl;
 
     // Remove from clients map
-    std::map<int, Client>::iterator it = clients.find(client_fd);
+    std::map<int, Client*>::iterator it = clients.find(client_fd);
     if (it != clients.end())
     {
-        it->second.disconnect();
-        it->second.quitAllChannels();
+        it->second->disconnect();
+        it->second->quitAllChannels();
         std::cout << "[SERVER] Client " << client_fd << " disconnected and removed." << std::endl;
+        delete it->second;
         clients.erase(it);
     }
     
@@ -160,12 +168,13 @@ void Server::removeClient(Client& client)
     std::cout << "[SERVER] Removing client: " << client_fd << std::endl;
 
     // Remove from clients map
-    std::map<int, Client>::iterator it = clients.find(client_fd);
+    std::map<int, Client*>::iterator it = clients.find(client_fd);
     if (it != clients.end())
     {
-        it->second.disconnect();
-        it->second.quitAllChannels();
+        it->second->disconnect();
+        it->second->quitAllChannels();
         std::cout << "[SERVER] Client " << client_fd << " disconnected and removed." << std::endl;
+        delete it->second;
         clients.erase(it);
     }
     
@@ -201,7 +210,7 @@ void Server::removeUniqueNick(const std::string &nick) {
 /*
 * Create a new client and add it to the clients map
 */
-void Server::createClient(int fd)
+void Server::createClient()
 {
     sockaddr_in client_addr;
     socklen_t addr_len = sizeof(client_addr);
@@ -213,9 +222,7 @@ void Server::createClient(int fd)
         return;
     }
 
-    Client new_client(new_socket, client_addr, addr_len, this);
-
-    clients[new_socket] = new_client;
+    clients[new_socket] = new Client(new_socket, client_addr, addr_len, this);
     addPollFd(new_socket);
 
     std::cout << "[SERVER] Client connected: " << new_socket << std::endl;
@@ -236,7 +243,11 @@ bool Server::isPasswordMatching(const std::string &pass) const
 */
 Client& Server::getClient(int fd)
 {
-    return clients[fd];
+    std::map<int, Client*>::iterator it = clients.find(fd);
+    if (it == clients.end()) {
+        throw std::runtime_error("Client not found");
+    }
+    return *it->second;
 }
 
 /*
@@ -266,34 +277,10 @@ void Server::loop()
                 if (poll_fds[i].fd == fd)
                 {
                     std::cout << "[SERVER] New connection on server socket" << std::endl;
-                    createClient(fd);
+                    createClient();
                 }
                 else
-                {
-                    char buffer[1024] = {0};
-                    int readed_bytes = read(poll_fds[i].fd, buffer, 1024);
-
-                    if (readed_bytes <= 0)
-                    {
-                        if (readed_bytes == 0)
-                        {
-                            std::cout << "[SERVER] Client disconnected gracefully: " << poll_fds[i].fd << std::endl;
-                        }
-                        else
-                        {
-                            std::cerr << "Read error on fd: " << poll_fds[i].fd << " - errno: " << errno << std::endl;
-                        }
-                        
-                        // Remove the client properly
-                        removeClient(poll_fds[i].fd);
-                    }
-                    else
-                    {
-                        std::string msg(buffer, readed_bytes);
-                        services->handleCommand(poll_fds[i].fd, msg);
-
-                    }
-                }
+                    services->handleCommand(poll_fds[i].fd);
             }
         }
     }
@@ -308,7 +295,7 @@ void Server::sendToAllClients(const std::string &message)
 {
     std::string prefixed_message = ":ircserv " + message;
 
-    for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+    for (std::map<int, Client*>::iterator it = clients.begin(); it != clients.end(); ++it)
     {
         int client_fd = it->first;
         if (send(client_fd, prefixed_message.c_str(), prefixed_message.length(), 0) < 0)
@@ -405,3 +392,12 @@ void Server::removeClientFromChannel(const std::string& channel_name, Client& cl
     channel.removeMember(client);
 }
 /*--------------------------------------------------------------*/
+
+
+
+
+
+
+void Server::log(const std::string &message) const {
+    std::cout << "[SERVER] " << message << std::endl;
+}

@@ -20,6 +20,7 @@ class Client {
     bool _sent_first_command;
     std::string command_terminators;
     std::vector<std::string> joined_channels;
+    std::stringstream command_buffer;
 
 public:
 
@@ -59,6 +60,9 @@ public:
 
     bool operator==(const Client &other) const;
     bool operator!=(const Client &other) const;
+
+    std::stringstream& getCommandStream();
+    void clearCommandStream();
 
 };
 

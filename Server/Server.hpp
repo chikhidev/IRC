@@ -15,8 +15,9 @@ class Server {
     struct pollfd *poll_fds;
     int poll_count;
 
+    // ASSOCIATIONS
     Services *services;
-    std::map<int, Client> clients;
+    std::map<int, Client*> clients;
     std::map<std::string, Client*> unique_nicks;
     std::map<std::string, Channel> channels;
 
@@ -24,7 +25,7 @@ class Server {
     void addPollFd(int);
     void removePollFd(int);
     void registerClient(int, Client);
-    void createClient(int);
+    void createClient();
 
 public:
 
@@ -61,6 +62,8 @@ public:
     Client* existingNick(const std::string &);
     void addUniqueNick(const std::string &, Client &);
     void removeUniqueNick(const std::string &);
+
+    void log(const std::string &message) const;
 };
 
 

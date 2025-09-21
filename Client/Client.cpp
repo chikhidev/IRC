@@ -21,6 +21,7 @@ Client::~Client() {
     if (!nickname.empty() && server) {
         server->removeUniqueNick(nickname);
     }
+    std::cout << "[CLIENT] Client " << fd << " destroyed." << std::endl;
 }
 
 void Client::setAddr(sockaddr_in address) {
@@ -172,4 +173,13 @@ bool Client::operator==(const Client &other) const {
 
 bool Client::operator!=(const Client &other) const {
     return !(fd == other.fd);
+}
+
+std::stringstream& Client::getCommandStream() {
+    return command_buffer;
+}
+
+void Client::clearCommandStream() {
+    command_buffer.str("");
+    command_buffer.clear();
 }
