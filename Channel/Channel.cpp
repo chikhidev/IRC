@@ -72,6 +72,13 @@ bool Channel::isMember(const Client &client) const {
 }
 
 /*
+* Check if a client is an operator of the channel
+*/
+bool Channel::isOperator(const Client &client) const {
+    return _operator && _operator == &client;
+}
+
+/*
 * Broadcast a message to all members of the channel
 */
 void Channel::broadcastToMembers(Client &sender, const std::string &message) {
@@ -119,4 +126,22 @@ std::string Channel::getTopic() const {
 
 bool Channel::isEmpty() const {
     return members.empty();
+}
+
+bool Channel::mode(char mode) const {
+    std::map<char, bool>::const_iterator it = modes.find(mode);
+    if (it != modes.end()) {
+        return it->second;
+    }
+    throw std::runtime_error("Invalid mode character");
+}
+
+
+void Channel::updateMode(char mode, bool value) {
+    std::map<char, bool>::iterator it = modes.find(mode);
+    if (it != modes.end()) {
+        it->second = value;
+    } else {
+        throw std::runtime_error("Invalid mode character");
+    }
 }

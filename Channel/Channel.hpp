@@ -28,11 +28,15 @@ public:
     void addMember(Client &);
     void removeMember(Client &);
     bool isMember(const Client &) const;
+    bool isOperator(const Client &) const;
 
     void broadcastToMembers(Client &, const std::string &);
     void listMembers(Client &) const;
 
     bool isEmpty() const;
+
+    bool mode(char) const;
+    void updateMode(char, bool);
 };
 
 #endif
