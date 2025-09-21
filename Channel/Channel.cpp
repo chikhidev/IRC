@@ -37,6 +37,11 @@ void Channel::addMember(Client &client) {
 }
 
 void Channel::removeMember(Client &client) {
+
+    if (!server) {
+        throw std::runtime_error("Server reference is null");
+    }
+
     std::map<int, Client*>::iterator it = members.find(client.getFd());
     if (it != members.end()) {
 

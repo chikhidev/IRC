@@ -57,6 +57,9 @@ public:
     bool isConnected() const;
     bool hasSentFirstCommand() const;
 
+    bool operator==(const Client &other) const;
+    bool operator!=(const Client &other) const;
+
 };
 
 

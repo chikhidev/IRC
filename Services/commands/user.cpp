@@ -6,6 +6,10 @@
 * Handle the USER command: <username> <hostname (ignored)> <servername (ignored)> :<realname>
 */
 void Services::user(Client& client, std::vector<std::string>& params) {
+    if (!server) {
+        throw std::runtime_error("Server reference is null");
+    }
+
     size_t params_size = params.size();
 
     if (params_size < 4) {

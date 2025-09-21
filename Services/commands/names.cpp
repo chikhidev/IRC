@@ -8,6 +8,10 @@
 */
 void Services::names(Client &client, std::vector<std::string> &params)
 {
+    if (!server) {
+        throw std::runtime_error("Server reference is null");
+    }
+
     if (params.empty()) {
         server->dmClient(client, 461, "NAMES :Not enough parameters");
         return;

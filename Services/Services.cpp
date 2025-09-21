@@ -21,6 +21,10 @@ Services::~Services() {}
 */
 bool Services::isAuth(Client &client, std::string &command)
 {
+    if (!server) {
+        throw std::runtime_error("Server reference is null");
+    }
+
     if (command != "PASS" && command != "QUIT" && !client.isAuthenticated())
     {
         server->dmClient(client, 451, "You must be authenticated to use this command");
@@ -34,6 +38,10 @@ bool Services::isAuth(Client &client, std::string &command)
 */
 bool Services::isRegistered(Client &client, std::string &command)
 {
+    if (!server) {
+        throw std::runtime_error("Server reference is null");
+    }
+
     if (command != "PASS" &&
         command != "NICK" &&
         command != "USER" &&
@@ -72,6 +80,10 @@ std::vector<std::string> split_params(const std::string &params) {
 */
 void Services::handleCommand(int client_fd, std::string &msg)
 {
+    if (!server) {
+        throw std::runtime_error("Server reference is null");
+    }
+
     std::string terminators;
     for (int i = msg.size() - 1; i >= 0; --i)
     {

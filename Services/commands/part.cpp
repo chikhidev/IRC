@@ -7,6 +7,10 @@
 * Handle the PART command: <channel>
 */
 void Services::part(Client &client, std::vector<std::string> &params) {
+    if (!server) {
+        throw std::runtime_error("Server reference is null");
+    }
+
     if (params.size() < 1 || params.size() > 2) {
         server->dmClient(client, 461, "PART :Bad parameters");
         return;

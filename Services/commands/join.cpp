@@ -7,6 +7,11 @@
 * Handle the JOIN command: <channel>
 */
 void Services::join(Client &client, std::vector<std::string> &params) {
+
+    if (!server) {
+        throw std::runtime_error("Server reference is null");
+    }
+
     if (params.size() != 1) {
         server->dmClient(client, 461, "JOIN :Bad parameters");
         return;

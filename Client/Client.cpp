@@ -17,7 +17,11 @@ Client::Client(int socket_fd, sockaddr_in address, socklen_t length, Server* srv
     server = srv;
 }
 
-Client::~Client() {}
+Client::~Client() {
+    if (!nickname.empty() && server) {
+        server->removeUniqueNick(nickname);
+    }
+}
 
 void Client::setAddr(sockaddr_in address) {
     memcpy(&addr, &address, sizeof(address));
@@ -143,6 +147,10 @@ void Client::removeFromJoinedChannels(const std::string& channel_name) {
 }
 
 void Client::quitAllChannels() {
+    if (!server) {
+        throw std::runtime_error("Server reference is null");
+    }
+
     for (int i = 0; i < joined_channels.size(); i++) {
         if (server->channelExists(joined_channels[i])) {
             std::cout << "[CLIENT] Client " << fd << " quitting channel " << joined_channels[i] << std::endl;
@@ -156,4 +164,12 @@ void Client::quitAllChannels() {
     }
 
     joined_channels.clear();
+}
+
+bool Client::operator==(const Client &other) const {
+    return fd == other.fd;
+}
+
+bool Client::operator!=(const Client &other) const {
+    return !(fd == other.fd);
 }

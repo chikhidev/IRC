@@ -176,6 +176,29 @@ void Server::removeClient(Client& client)
 }
 
 /*
+* Get a client by nickname
+*/
+Client* Server::existingNick(const std::string &nick) {
+    std::map<std::string, Client*>::iterator it = unique_nicks.find(nick);
+    if (it != unique_nicks.end()) {
+        return (it->second);
+    }
+    return NULL;
+}
+
+/* Add a unique nickname to the map
+*/
+void Server::addUniqueNick(const std::string &nick, Client &client) {
+    unique_nicks[nick] = &client;
+}
+
+/* Remove a unique nickname from the map
+*/
+void Server::removeUniqueNick(const std::string &nick) {
+    unique_nicks.erase(nick);
+}
+
+/*
 * Create a new client and add it to the clients map
 */
 void Server::createClient(int fd)

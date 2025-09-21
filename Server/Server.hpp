@@ -17,6 +17,7 @@ class Server {
 
     Services *services;
     std::map<int, Client> clients;
+    std::map<std::string, Client*> unique_nicks;
     std::map<std::string, Channel> channels;
 
     // PRIVATE METHODS
@@ -56,6 +57,10 @@ public:
     Channel& getChannel(const std::string&);
 
     bool channelExists(const std::string&) const;
+
+    Client* existingNick(const std::string &);
+    void addUniqueNick(const std::string &, Client &);
+    void removeUniqueNick(const std::string &);
 };
 
 
