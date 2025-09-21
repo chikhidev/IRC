@@ -142,13 +142,14 @@ void Server::removeClient(int client_fd)
     if (it != clients.end())
     {
         it->second.disconnect();
+        it->second.quitAllChannels();
+        std::cout << "[SERVER] Client " << client_fd << " disconnected and removed." << std::endl;
         clients.erase(it);
     }
     
     // Remove from poll_fds
     removePollFd(client_fd);
-    
-    // Close the socket
+
     close(client_fd);
 }
 
@@ -163,13 +164,14 @@ void Server::removeClient(Client& client)
     if (it != clients.end())
     {
         it->second.disconnect();
+        it->second.quitAllChannels();
+        std::cout << "[SERVER] Client " << client_fd << " disconnected and removed." << std::endl;
         clients.erase(it);
     }
     
     // Remove from poll_fds
     removePollFd(client_fd);
-    
-    // Close the socket
+
     close(client_fd);
 }
 

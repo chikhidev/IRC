@@ -17,9 +17,7 @@ Client::Client(int socket_fd, sockaddr_in address, socklen_t length, Server* srv
     server = srv;
 }
 
-Client::~Client() {
-    quitAllChannels();
-}
+Client::~Client() {}
 
 void Client::setAddr(sockaddr_in address) {
     memcpy(&addr, &address, sizeof(address));
@@ -145,15 +143,17 @@ void Client::removeFromJoinedChannels(const std::string& channel_name) {
 }
 
 void Client::quitAllChannels() {
-    for (std::vector<std::string>::iterator it = joined_channels.begin(); it != joined_channels.end(); ++it) {
-        if (server->channelExists(*it)) {
-            Channel& channel = server->getChannel(*it);
+    for (int i = 0; i < joined_channels.size(); i++) {
+        if (server->channelExists(joined_channels[i])) {
+            std::cout << "[CLIENT] Client " << fd << " quitting channel " << joined_channels[i] << std::endl;
+            Channel& channel = server->getChannel(joined_channels[i]);
             if (channel.isMember(*this)) {
-                channel.removeMember(*this);
-                std::string quit_message = ":" + getNick() + "!" + getUsername() + "@localhost QUIT :Client disconnected";
+                std::string quit_message = "QUIT :Client disconnected";
                 channel.broadcastToMembers(*this, quit_message);
+                channel.removeMember(*this);
             }
         }
     }
+
     joined_channels.clear();
 }

@@ -74,6 +74,11 @@ void Channel::broadcastToMembers(Client &sender, const std::string &message) {
         throw std::runtime_error("Server reference is null");
     }
 
+    // check if sender is a member
+    if (!isMember(sender)) {
+        throw std::runtime_error("Not a member of the channel");
+    }
+
     for (std::map<int, Client*>::iterator it = members.begin(); it != members.end(); ++it) {
         if (it->first != sender.getFd()) {
             sender.sendMessage(*(it->second), message);
@@ -91,12 +96,10 @@ void Channel::listMembers(Client &client) const {
 
     std::cout << "Members of channel " << name << ":" << std::endl;
 
-    std::string response = "#" + name + " :";
+    std::string response = "#" + name + " :@" + _operator->getNick() + " ";
 
     for (std::map<int, Client*>::const_iterator it = members.begin(); it != members.end(); ++it) {
-        if (it->second == _operator) {
-            response += "@" + it->second->getNick() + " ";
-        } else {
+        if (it->second != _operator) {
             response += it->second->getNick() + " ";
         }
     }
