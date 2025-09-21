@@ -3,7 +3,6 @@ CC=c++
 CFLAGS=-Wall -Wextra -Werror -std=c++98 -O3
 
 SERVICES_COMMANDS=\
-	Services/commands/cap.cpp \
 	Services/commands/pass.cpp \
 	Services/commands/nick.cpp \
 	Services/commands/user.cpp \

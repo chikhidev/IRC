@@ -11,7 +11,6 @@ Services::Services(Server *srv) : server(srv)
     command_map["JOIN"] = &Services::join;
     command_map["PART"] = &Services::part;
     command_map["NAMES"] = &Services::names;
-    command_map["CAP"] = &Services::cap;
 }
 
 
@@ -26,7 +25,9 @@ bool Services::isAuth(Client &client, std::string &command)
         throw std::runtime_error("Server reference is null");
     }
 
-    if (command != "PASS" && command != "QUIT" && !client.isAuthenticated())
+    if (
+        command != "PASS" && command != "QUIT"
+        && !client.isAuthenticated())
     {
         server->dmClient(client, 451, "You must be authenticated to use this command");
         return false;
@@ -89,6 +90,8 @@ std::string cmd_shot(int fd) {
 std::string stripTrailingTerminators(std::string &cmd, Client &client)
 {
     size_t end = cmd.size();
+    std::string terminators;
+
     while (end > 0 && !isprint(static_cast<unsigned char>(cmd[end - 1])))
     {
         --end;
@@ -123,32 +126,11 @@ void debug_client(Client &client, int client_fd, const std::string &command, con
 }
 
 /*
-* Handle incoming commands from clients
+* Process a single command line from a client
 */
-void Services::handleCommand(int client_fd)
+void Services::processCommandLine(Client &client, int client_fd, std::string &command_line)
 {
-    if (!server) {
-        throw std::runtime_error("Server reference is null");
-    }
-
-    Client &client = server->getClient(client_fd);
-    std::string _cmd = cmd_shot(client_fd);
-    std::stringstream &cmdStream = client.getCommandStream();
-    
-    if (!_cmd.empty() && _cmd.back() != '\n')
-    {
-        cmdStream << _cmd;
-
-        if (cmdStream.str().length() > MAX_COMMAND_LENGTH) {
-            server->dmClient(client, 414, "Command too long");
-            client.clearCommandStream();
-        }
-
-        return; // here we stop to give other clients their chances to
-    }
-
-    _cmd = cmdStream.str() + _cmd;
-    _cmd = stripTrailingTerminators(_cmd, client);
+    std::string _cmd = stripTrailingTerminators(command_line, client);
 
     if (_cmd.empty())
         return;
@@ -161,14 +143,18 @@ void Services::handleCommand(int client_fd)
 
     if (!client.isConnected()) return;
 
+    std::cout << "[SERVICE] Received command from fd " << client_fd << ": " << command_line << std::endl;
+
     std::vector<std::string> param_list = split_params(params);
-    std::map<std::string, void (Services::*)(Client&, std::vector<std::string>&)>::iterator it = command_map.find(command);
+    std::map<std::string, 
+        void (Services::*)(Client&, std::vector<std::string>&)>
+        ::iterator it = command_map.find(command);
 
     if (it != command_map.end())
     {
-        debug_client(client, client_fd, command, param_list);
         if (!isAuth(client, command)) return;
         if (!isRegistered(client, command)) return;
+        debug_client(client, client_fd, command, param_list);
         (this->*(it->second))(client, param_list);
         client.clearCommandStream();
         return;
@@ -176,5 +162,48 @@ void Services::handleCommand(int client_fd)
 
     std::cout << "[SERVICE] Unknown command: " << command << std::endl;
     server->dmClient(client, 421, command + " :Unknown command");
+    client.clearCommandStream();
+}
+
+/*
+* Handle incoming commands from clients
+*/
+void Services::handleCommand(int client_fd)
+{
+    if (!server) {
+        throw std::runtime_error("Server reference is null");
+    }
+
+    Client &client = server->getClient(client_fd);
+    std::string payload = cmd_shot(client_fd);
+    std::stringstream &cmdStream = client.getCommandStream();
+    
+    if (!payload.empty() && payload.back() != '\n')
+    {
+        cmdStream << payload;
+
+        if (cmdStream.str().length() > MAX_COMMAND_LENGTH) {
+            server->dmClient(client, 414, "Command too long");
+            client.clearCommandStream();
+        }
+
+        return; // here we stop to give other clients their chances to
+    }
+
+    payload = cmdStream.str() + payload;
+
+    // here we check if multilined payload
+    std::vector<std::string> commands;
+    std::istringstream iss(payload);
+    std::string line;
+    while (std::getline(iss, line))
+    {
+        commands.push_back(line);
+    }
+
+    for (size_t i = 0; i < commands.size(); ++i)
+    {
+        processCommandLine(client, client_fd, commands[i]);
+    }
 }
 

@@ -20,11 +20,11 @@ public:
     ~Services();
 
     void handleCommand(int);
+    void processCommandLine(Client&, int, std::string&);
 
     bool isAuth(Client&, std::string&);
     bool isRegistered(Client&, std::string&);
 
-    void cap(Client&, std::vector<std::string>&);
     void pass(Client&, std::vector<std::string>&);
     void nick(Client&, std::vector<std::string>&);
     void user(Client&, std::vector<std::string>&);
