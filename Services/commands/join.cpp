@@ -44,6 +44,10 @@ void Services::join(Client &client, std::vector<std::string> &params) {
             return;
         }
 
+        if (existing_channel.isFull()) {
+            throw std::runtime_error("Channel is full");
+        }
+
         server->addClientToChannel(channel_name, client);
 
         existing_channel.broadcastToMembers(client, "JOIN :" + channel_name);

@@ -2,16 +2,17 @@
 #include "../Client/Client.hpp"
 #include "../Server/Server.hpp"
 
-Channel::Channel() : name(""), _operator(NULL), server(NULL) {
+Channel::Channel() : name(""), server(NULL) {
     std::cout << "Default Channel constructor called" << std::endl;
     initModes();
+    user_limit = 10;
 }
 
 Channel::Channel(const std::string &channel_name, Client &creator, Server *srv) : server(srv) { 
     name = channel_name;
-    _operator = &creator;
-    members[creator.getFd()] = &creator;
+    operators[creator.getNick()] = &creator;
     initModes();
+    user_limit = 10;
 }
 
 void Channel::initModes() {
@@ -32,6 +33,7 @@ void Channel::addMember(Client &client) {
     if (isMember(client)) {
         throw std::runtime_error("Client is already a member of the channel");
     }
+
     members[client.getFd()] = &client;
     client.addToJoinedChannels(name);
 }
@@ -45,8 +47,8 @@ void Channel::removeMember(Client &client) {
     std::map<int, Client*>::iterator it = members.find(client.getFd());
     if (it != members.end()) {
 
-        if (it->second == _operator) {
-            broadcastToMembers(client, "NOTICE #" + name + " :The channel operator has left the channel, the channel is gone");
+        if (isOperator(client) && operators.size() == 1) {
+            broadcastToMembers(client, "NOTICE #" + name + " :The channel operator has left the channel, the channel will be removed.");
             server->removeChannel(name);
             return;
         }
@@ -68,15 +70,47 @@ void Channel::removeMember(Client &client) {
 * Check if a client is a member of the channel
 */
 bool Channel::isMember(const Client &client) const {
-    return members.find(client.getFd()) != members.end();
+    return
+        members.find(client.getFd()) != members.end() ||
+        operators.find(client.getNick()) != operators.end();
 }
 
 /*
 * Check if a client is an operator of the channel
 */
 bool Channel::isOperator(const Client &client) const {
-    return _operator && _operator == &client;
+    std::map<const std::string, Client*>::const_iterator it = operators.find(client.getNick());
+    return it != operators.end() && it->second == &client;
 }
+
+/*
+* Add a client as an operator of the channel
+*/
+void Channel::addOperator(Client &client) {
+    if (!isMember(client)) {
+        throw std::runtime_error("Client is not a member of the channel");
+    }
+
+    std::map<std::string, Client*>::iterator it = operators.find(client.getNick());
+    if (it != operators.end()) {
+        throw std::runtime_error("Client is already an operator");
+    }
+
+    operators[client.getNick()] = &client;
+}
+
+/*
+* Remove a client as an operator of the channel
+*/
+void Channel::removeOperator(Client &client) {
+    std::map<std::string, Client*>::iterator it = operators.find(client.getNick());
+    if (it == operators.end()) {
+        throw std::runtime_error("Client is not an operator");
+    }
+
+    operators.erase(it);
+}
+
 
 /*
 * Broadcast a message to all members of the channel
@@ -91,6 +125,14 @@ void Channel::broadcastToMembers(Client &sender, const std::string &message) {
         throw std::runtime_error("Not a member of the channel");
     }
 
+    //send to operators
+    for (std::map<const std::string, Client*>::iterator it = operators.begin(); it != operators.end(); ++it) {
+        if (it->second->getFd() != sender.getFd()) {
+            sender.sendMessage(*(it->second), message);
+        }
+    }
+
+    // send message to all members except sender
     for (std::map<int, Client*>::iterator it = members.begin(); it != members.end(); ++it) {
         if (it->first != sender.getFd()) {
             sender.sendMessage(*(it->second), message);
@@ -108,12 +150,14 @@ void Channel::listMembers(Client &client) const {
 
     std::cout << "Members of channel " << name << ":" << std::endl;
 
-    std::string response = name + " :@" + _operator->getNick() + " ";
+    std::string response = name + " :";
+
+    for (std::map<std::string, Client*>::const_iterator it = operators.begin(); it != operators.end(); ++it) {
+        response += "@" + it->second->getNick() + " ";
+    }
 
     for (std::map<int, Client*>::const_iterator it = members.begin(); it != members.end(); ++it) {
-        if (it->second != _operator) {
-            response += it->second->getNick() + " ";
-        }
+        response += it->second->getNick() + " ";
     }
 
     server->dmClient(client, 353, response);
@@ -149,4 +193,21 @@ void Channel::updateMode(char mode, bool value) {
 
 void Channel::setTopic(const std::string &new_topic) {
     topic = new_topic;
+}
+
+void Channel::updatePassword(const std::string &new_password) {
+    password = new_password;
+}
+
+void Channel::updateUserLimit(size_t limit) {
+    if (limit < 0) {
+        throw std::runtime_error("User limit cannot be negative");
+    }
+    user_limit = limit;
+}
+
+
+bool Channel::isFull() const {
+    return modes.at('l') &&
+        (members.size() + operators.size()) >= user_limit;
 }

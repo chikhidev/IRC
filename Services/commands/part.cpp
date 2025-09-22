@@ -21,7 +21,6 @@ void Services::part(Client &client, std::vector<std::string> &params) {
         server->dmClient(client, 403, "PART :No such channel");
         return;
     }
-    channel_name.erase(0, 1);
 
     std::string reason = ":Leaving";
     if (params.size() == 2) {

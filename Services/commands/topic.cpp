@@ -27,9 +27,9 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
         new_topic += " " + params[i];
     }
 
-    if (new_topic.length() > 0 && new_topic[0] == ':') {
-        new_topic.erase(0, 1); // Remove leading ':' if present
-    } else {
+    srever->log("[SERVICES] TOPIC command by " + client.getNick() + " on channel " + channel_name + " with topic: " + new_topic);
+
+    if (new_topic.length() > 0 && new_topic[0] != ':') {
         server->dmClient(client, 461, "TOPIC :badly formed topic");
         return ;
     }

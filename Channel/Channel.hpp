@@ -10,10 +10,11 @@ class Channel {
     Server *server;
     std::string name;
     std::map<int, Client*> members;
-    Client* _operator;
     std::string topic;
+    std::map<std::string, Client*> operators;
     std::map<char, bool> modes;
     std::string password;
+    size_t user_limit;
 
     void initModes();
 
@@ -39,6 +40,13 @@ public:
 
     bool mode(char) const;
     void updateMode(char, bool);
+    void updatePassword(const std::string &);
+    void updateUserLimit(size_t);
+    void addOperator(Client &);
+    void removeOperator(Client &);
+
+    bool isFull(const std::string &) const;
+
 };
 
 #endif

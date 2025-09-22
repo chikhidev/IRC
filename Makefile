@@ -11,6 +11,7 @@ SERVICES_COMMANDS=\
 	Services/commands/part.cpp \
 	Services/commands/names.cpp \
 	Services/commands/topic.cpp \
+	Services/commands/mode.cpp
 
 SRC=Server/Server.cpp \
 	Services/Services.cpp \
