@@ -18,6 +18,13 @@ void Services::join(Client &client, std::vector<std::string> &params) {
     }
 
     std::string channel_name = params[0];
+
+    if (channel_name == "0") {
+        client.quitAllChannels();
+        server->dmClient(client, 366, "* :End of /NAMES list.");
+        return;
+    }
+
     if (channel_name[0] != '#') {
         server->dmClient(client, 403, "JOIN :No such channel");
         return;

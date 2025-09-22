@@ -14,6 +14,7 @@ Services::Services(Server *srv) : server(srv)
     command_map["TOPIC"] = &Services::topic;
     command_map["MODE"] = &Services::mode;
     command_map["PRIVMSG"] = &Services::prvmsg;
+    command_map["KICK"] = &Services::kick;
 }
 
 
@@ -158,7 +159,13 @@ void Services::processCommandLine(Client &client, int client_fd, std::string &co
         if (!isAuth(client, command)) return;
         if (!isRegistered(client, command)) return;
         debug_client(client, client_fd, command, param_list);
-        (this->*(it->second))(client, param_list);
+
+        try {
+            (this->*(it->second))(client, param_list);
+        } catch (const std::exception &e) {
+            std::cerr << "[ERROR] Exception while processing command " << command << ": " << e.what() << std::endl;
+        }
+
         client.clearCommandStream();
         return;
     }

@@ -152,12 +152,14 @@ void Client::quitAllChannels() {
         throw std::runtime_error("Server reference is null");
     }
 
-    for (int i = 0; i < joined_channels.size(); i++) {
+    size_t channel_count = joined_channels.size();
+    for (int i = channel_count - 1; i >= 0; --i) {
+        server->log("[CLIENT] Client " + std::to_string(fd) + " quitting channel " + joined_channels[i]);
+
         if (server->channelExists(joined_channels[i])) {
-            std::cout << "[CLIENT] Client " << fd << " quitting channel " << joined_channels[i] << std::endl;
             Channel& channel = server->getChannel(joined_channels[i]);
             if (channel.isMember(*this)) {
-                std::string quit_message = "QUIT :Client disconnected";
+                std::string quit_message = "PART " + channel.getName();
                 channel.broadcastToMembers(*this, quit_message);
                 channel.removeMember(*this);
             }
