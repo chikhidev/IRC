@@ -24,6 +24,8 @@ public:
 
     std::string getName() const;
     std::string getTopic() const;
+
+    void setTopic(const std::string &);
     
     void addMember(Client &);
     void removeMember(Client &);

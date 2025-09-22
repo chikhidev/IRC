@@ -16,7 +16,7 @@ Channel::Channel(const std::string &channel_name, Client &creator, Server *srv) 
 
 void Channel::initModes() {
     modes['i'] = false; // Invite-only
-    modes['t'] = false; // Topic settable by channel operator only
+    modes['t'] = true; // Topic settable by channel operator only
     modes['k'] = false; // Key (password) required to join
     modes['o'] = false; // Operator status
     modes['l'] = false; // User limit
@@ -108,7 +108,7 @@ void Channel::listMembers(Client &client) const {
 
     std::cout << "Members of channel " << name << ":" << std::endl;
 
-    std::string response = "#" + name + " :@" + _operator->getNick() + " ";
+    std::string response = name + " :@" + _operator->getNick() + " ";
 
     for (std::map<int, Client*>::const_iterator it = members.begin(); it != members.end(); ++it) {
         if (it->second != _operator) {
@@ -117,7 +117,7 @@ void Channel::listMembers(Client &client) const {
     }
 
     server->dmClient(client, 353, response);
-    server->dmClient(client, 366, "#" + name + " :End of /NAMES list.");
+    server->dmClient(client, 366, name + " :End of /NAMES list.");
 }
 
 std::string Channel::getTopic() const {
@@ -144,4 +144,9 @@ void Channel::updateMode(char mode, bool value) {
     } else {
         throw std::runtime_error("Invalid mode character");
     }
+}
+
+
+void Channel::setTopic(const std::string &new_topic) {
+    topic = new_topic;
 }

@@ -22,33 +22,40 @@ void Services::join(Client &client, std::vector<std::string> &params) {
         server->dmClient(client, 403, "JOIN :No such channel");
         return;
     }
-    channel_name.erase(0, 1);
 
     try {
         
         if (!server->channelExists(channel_name)) {
-            return server->createChannel(channel_name, client);
+            server->createChannel(channel_name, client);
+
+            Channel &new_channel = server->getChannel(channel_name);
+
+            new_channel.broadcastToMembers(client, "JOIN :" + channel_name);
+            server->dmClient(client, 331, channel_name + " :No topic is set");
+            new_channel.listMembers(client);
+            
+            return;
         }
 
-        Channel &_channel = server->getChannel(channel_name);
+        Channel &existing_channel = server->getChannel(channel_name);
 
-        if (_channel.isMember(client)) {
+        if (existing_channel.isMember(client)) {
             server->dmClient(client, 443, "JOIN :You're already on that channel");
             return;
         }
 
         server->addClientToChannel(channel_name, client);
 
-        _channel.broadcastToMembers(client, "JOIN :#" + channel_name);
+        existing_channel.broadcastToMembers(client, "JOIN :" + channel_name);
 
-        std::string topic = _channel.getTopic();
+        std::string topic = existing_channel.getTopic();
         if (topic.empty()) {
-            server->dmClient(client, 331, "#" + channel_name + " :No topic is set");
+            server->dmClient(client, 331, channel_name + " :No topic is set");
         } else {
-            server->dmClient(client, 332, "#" + channel_name + " :" + topic);
+            server->dmClient(client, 332, channel_name + " :" + topic);
         }
 
-        _channel.listMembers(client);
+        existing_channel.listMembers(client);
         
     } catch (const std::exception &e) {
         server->dmClient(client, 403, "JOIN :" + std::string(e.what()));

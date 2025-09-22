@@ -32,6 +32,8 @@ public:
     void join(Client&, std::vector<std::string>&);
     void part(Client&, std::vector<std::string>&);
     void names(Client&, std::vector<std::string>&);
+    void topic(Client&, std::vector<std::string>&);
+    void mode(Client&, std::vector<std::string>&);
 };
 
 #endif

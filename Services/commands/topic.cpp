@@ -21,12 +21,17 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
         return;
     }
 
-    channel_name.erase(0, 1); // Remove the '#' prefix for internal handling
-
     std::string new_topic = "";
 
     for (size_t i = 1; i < params.size(); ++i) {
-        new_topic += params[i];
+        new_topic += " " + params[i];
+    }
+
+    if (new_topic.length() > 0 && new_topic[0] == ':') {
+        new_topic.erase(0, 1); // Remove leading ':' if present
+    } else {
+        server->dmClient(client, 461, "TOPIC :badly formed topic");
+        return ;
     }
     
     if (!server->channelExists(channel_name)) {
@@ -51,16 +56,16 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
         return ;
     }
 
-    new_topic.erase(0, 1); // Remove leading ':' if present
+    bool is_operator = channel.isOperator(client);
+    bool only_operators = channel.mode('t');
 
-    if (!channel.isOperator(client)) {
-        server->dmClient(client, 482, channel_name + " :You're not channel operator");
+    if (only_operators && !is_operator) {
+        server->dmClient(client, 482, channel_name + " :Only channel operators may set the topic");
         return;
     }
 
-    if (channel.mode('t') == false) {
-        server->dmClient(client, 482, channel_name + " :Channel topic is not settable by channel operator");
-        return;
+    if (new_topic[0] == ':') {
+        new_topic.erase(0, 1); // Remove leading ':' if present
     }
     
     channel.setTopic(new_topic);
