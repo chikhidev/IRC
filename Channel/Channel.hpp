@@ -45,7 +45,7 @@ public:
     void addOperator(Client &);
     void removeOperator(Client &);
 
-    bool isFull(const std::string &) const;
+    bool isFull() const;
 
 };
 

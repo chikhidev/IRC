@@ -34,6 +34,8 @@ public:
     void part(Client&, std::vector<std::string>&);
     void names(Client&, std::vector<std::string>&);
     void topic(Client&, std::vector<std::string>&);
+    void prvmsg(Client&, std::vector<std::string>&);
+
     void mode(Client&, std::vector<std::string>&);
         void handlePass(Channel&, Client&, std::vector<std::string>&);
         void handleMembersLimit(Channel&, Client&, std::vector<std::string>&);

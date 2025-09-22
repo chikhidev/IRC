@@ -62,15 +62,16 @@ void Services::handlePass(Channel &c, Client &client, std::vector<std::string> &
         return;
     }
 
-    bool set_pass = params[2][0] == '+';
+    bool set_pass = params[1][0] == '+';
 
     c.updateMode('k', set_pass);
     c.updatePassword(params[2]);
+    server->dmClient(client, 324, c.getName() + " " + (set_pass ? "+k" : "-k"));
 }
 
 void Services::handleMembersLimit(Channel &c, Client &client, std::vector<std::string> &params)
 {
-    bool set_limit = params[2][0] == '+';
+    bool set_limit = params[1][0] == '+';
 
     if (set_limit && params.size() < 3) {
         server->dmClient(client, 461, "MODE :Not enough parameters");
@@ -82,6 +83,10 @@ void Services::handleMembersLimit(Channel &c, Client &client, std::vector<std::s
     if (set_limit) {
         int limit = std::atoi(params[2].c_str());
         c.updateUserLimit(limit);
+        server->dmClient(client, 324, c.getName() + " +l " + params[2]);
+    } else {
+        c.updateUserLimit(0);
+        server->dmClient(client, 324, c.getName() + " -l");
     }
 }
 
@@ -103,7 +108,9 @@ void Services::handleOperator(Channel &c, Client &client, std::vector<std::strin
 
     if (add_operator) {
         c.addOperator(client);
+        server->dmClient(client, 324, c.getName() + " +o " + target_nick);
     } else {
         c.removeOperator(client);
+        server->dmClient(client, 324, c.getName() + " -o " + target_nick);  
     }
 }

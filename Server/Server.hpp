@@ -56,6 +56,7 @@ public:
     void removeClientFromChannel(const std::string &, Client &);
     
     Client& getClient(int);
+    Client& getClientByNick(const std::string &);
     Channel& getChannel(const std::string&);
 
     bool channelExists(const std::string&) const;

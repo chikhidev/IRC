@@ -270,6 +270,15 @@ Client& Server::getClient(int fd)
     return *it->second;
 }
 
+Client& Server::getClientByNick(const std::string &nick)
+{
+    std::map<std::string, Client*>::iterator it = unique_nicks.find(nick);
+    if (it == unique_nicks.end()) {
+        throw std::runtime_error("Client not found");
+    }
+    return *it->second;
+}
+
 /*
 * Main server loop:
 * - Polls for events
@@ -417,9 +426,6 @@ void Server::removeClientFromChannel(const std::string& channel_name, Client& cl
     channel.removeMember(client);
 }
 /*--------------------------------------------------------------*/
-
-
-
 
 
 /*

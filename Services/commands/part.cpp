@@ -40,12 +40,8 @@ void Services::part(Client &client, std::vector<std::string> &params) {
             return;
         }
 
-        _channel.broadcastToMembers(client, "PART :#" + channel_name + (reason.empty() ? "" : " (" + reason + ")"));
+        _channel.broadcastToMembers(client, "PART :" + channel_name + (reason.empty() ? "" : " (" + reason + ")"));
         _channel.removeMember(client);
-
-        if (server->channelExists(channel_name) && _channel.isEmpty()) {
-            server->removeChannel(channel_name);
-        }
 
     } catch (const std::exception &e) {
         server->dmClient(client, 403, "PART :" + std::string(e.what()));

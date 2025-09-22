@@ -13,6 +13,7 @@ Services::Services(Server *srv) : server(srv)
     command_map["NAMES"] = &Services::names;
     command_map["TOPIC"] = &Services::topic;
     command_map["MODE"] = &Services::mode;
+    command_map["PRIVMSG"] = &Services::prvmsg;
 }
 
 

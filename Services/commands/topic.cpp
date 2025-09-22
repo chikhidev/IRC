@@ -21,15 +21,19 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
         return;
     }
 
-    std::string new_topic = "";
+    std::string new_topic;
 
-    for (size_t i = 1; i < params.size(); ++i) {
-        new_topic += " " + params[i];
+    if (params.size() > 1) {
+        new_topic = params[1];
+
+        for (size_t i = 2; i < params.size(); ++i) {
+            new_topic += params[i] + " ";
+        }
     }
 
-    srever->log("[SERVICES] TOPIC command by " + client.getNick() + " on channel " + channel_name + " with topic: " + new_topic);
+    server->log("[SERVICES] TOPIC command by " + client.getNick() + " on channel " + channel_name + " with topic: " + new_topic);
 
-    if (new_topic.length() > 0 && new_topic[0] != ':') {
+    if (!new_topic.empty() && new_topic[0] != ':') {
         server->dmClient(client, 461, "TOPIC :badly formed topic");
         return ;
     }

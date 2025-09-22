@@ -48,7 +48,7 @@ void Channel::removeMember(Client &client) {
     if (it != members.end()) {
 
         if (isOperator(client) && operators.size() == 1) {
-            broadcastToMembers(client, "NOTICE #" + name + " :The channel operator has left the channel, the channel will be removed.");
+            broadcastToMembers(client, "NOTICE " + name + " :The channel operator has left the channel, the channel will be removed.");
             server->removeChannel(name);
             return;
         }
@@ -56,8 +56,8 @@ void Channel::removeMember(Client &client) {
         members.erase(it);
         client.removeFromJoinedChannels(name);
 
-        if (members.empty()) {
-            std::cout << "[CHANNEL] Channel " << name << " is empty. Removing it from server." << std::endl;
+        if (isEmpty()) {
+            std::cout << "[CHANNEL " << name << "] Channel " << name << " is empty. Removing it from server." << std::endl;
             server->removeChannel(name);
         }
 
@@ -169,7 +169,7 @@ std::string Channel::getTopic() const {
 }
 
 bool Channel::isEmpty() const {
-    return members.empty();
+    return members.empty() && operators.empty();
 }
 
 bool Channel::mode(char mode) const {
