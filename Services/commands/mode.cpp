@@ -99,6 +99,11 @@ void Services::handleOperator(Channel &c, Client &client, std::vector<std::strin
     }
 
     std::string &target_nick = params[2];
+    if (target_nick.empty() || target_nick.length() > NICK_LIMIT) {
+        server->dmClient(client, 461, "MODE :Erroneous nickname");
+        return;
+    }
+
     Client *target_client = server->getClientByNick(target_nick);
     if (!target_client) {
         server->dmClient(client, 401, target_nick + " :No such nick/channel");

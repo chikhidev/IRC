@@ -18,6 +18,12 @@ void Services::pass(Client &client, std::vector<std::string> &params)
     }
 
     std::string password = params[0];
+    if (password.empty())
+    {
+        server->dmClient(client, 461, "Not enough parameters");
+        return;
+    }
+
     if (server->isPasswordMatching(password))
     {
         if (client.isAuthenticated()) {

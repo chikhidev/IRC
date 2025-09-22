@@ -1,0 +1,74 @@
+IRC SERVER SECURITY & CODE QUALITY ANALYSIS REPORT
+==================================================
+SPECIFIC VULNERABILITY LOCATIONS
+===============================
+
+NOTE: To provide exact line numbers and file locations, I need to examine your source code files.
+Please open each file in VS Code so I can analyze the actual implementation.
+
+ANALYSIS NEEDED FOR SPECIFIC LOCATIONS:
+--------------------------------------
+
+FILES TO EXAMINE:
+1. main.cpp - Entry point analysis
+2. Server/Server.hpp & Server.cpp - Core server vulnerabilities
+3. Client/Client.hpp & Client.cpp - Client handling issues
+4. Channel/Channel.hpp & Channel.cpp - Channel security flaws
+5. Services/Services.hpp & Services.cpp - Service layer problems
+6. shared/libs.hpp - Common definitions and includes
+7. Services/commands/*.cpp - Individual command vulnerabilities
+
+SPECIFIC AREAS TO CHECK:
+
+IN SERVER FILES:
+- Socket creation and binding code
+- Client connection acceptance loop
+- Message parsing functions
+- Error handling in network operations
+- Memory allocation for client structures
+
+IN CLIENT FILES:
+- Authentication state management
+- Buffer handling for incoming messages
+- Client cleanup on disconnect
+- Permission checking mechanisms
+
+IN CHANNEL FILES:
+- Channel creation and destruction
+- User permission validation
+- Message broadcasting logic
+- Channel mode enforcement
+
+IN COMMAND FILES:
+- Input parameter validation
+- Command privilege checking
+- Error response generation
+- State modification operations
+
+PLEASE OPEN THE FOLLOWING FILES ONE BY ONE:
+
+1. START WITH: main.cpp
+   - Check argc/argv validation
+   - Port number parsing
+   - Server initialization error handling
+
+2. THEN: Server/Server.cpp
+   - Socket operations
+   - Select/poll implementation
+   - Client connection handling
+   - Message parsing logic
+
+3. FOLLOWED BY: Each command file in Services/commands/
+   - Parameter validation
+   - Authentication checks
+   - Buffer operations
+   - Error responses
+
+TO GET SPECIFIC LOCATIONS:
+-------------------------
+Open each file in VS Code and I will identify:
+- Exact line numbers of vulnerabilities
+- Specific function names with issues
+- Code snippets that need fixing
+- Recommended code changes for each issue
+

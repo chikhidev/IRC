@@ -85,6 +85,9 @@ std::vector<std::string> split_params(const std::string &params) {
 std::string cmd_shot(int fd) {
     char buffer[512] = {0};
     int readed_bytes = read(fd, buffer, 512);
+    if (readed_bytes <= 0) {
+        return "";
+    }
     std::string msg(buffer, readed_bytes);
     return msg;
 }

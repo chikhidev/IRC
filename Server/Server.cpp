@@ -113,10 +113,14 @@ void Server::registerClient(int fd, Client client)
 void Server::addPollFd(int new_fd)
 {
     struct pollfd *new_poll_fds = new struct pollfd[poll_count + 1];
-    for (int i = 0; i < poll_count; ++i)
-    {
-        new_poll_fds[i] = poll_fds[i];
+
+    if (!new_poll_fds) {
+        throw std::runtime_error("Failed to allocate memory for poll file descriptors");
     }
+
+    for (int i = 0; i < poll_count; ++i)
+        new_poll_fds[i] = poll_fds[i];
+    
     new_poll_fds[poll_count].fd = new_fd;
     new_poll_fds[poll_count].events = POLLIN;
 
@@ -186,20 +190,27 @@ void Server::removeClient(Client& client)
 
     std::cout << "[SERVER] Removing client: " << client_fd << std::endl;
 
-    // Remove from clients map
+    // Check the clients map
     std::map<int, Client*>::iterator it = clients.find(client_fd);
-    if (it != clients.end())
+    if (it == clients.end())
     {
-        it->second->disconnect();
-        it->second->quitAllChannels();
-        std::cout << "[SERVER] Client " << client_fd << " disconnected and removed." << std::endl;
-        delete it->second;
-        clients.erase(it);
+        std::cerr << "[SERVER] Client fd " << client_fd << " not found in clients map." << std::endl;
+        return;
     }
+
+    it->second->disconnect();
+    it->second->quitAllChannels();
+
+    if (it->second->hasNick()) {
+        removeUniqueNick(it->second->getNick());
+    }
+
+    std::cout << "[SERVER] Client " << client_fd << " disconnected and removed." << std::endl;
+    delete it->second;
+    clients.erase(it);
     
     // Remove from poll_fds
     removePollFd(client_fd);
-
     close(client_fd);
 }
 
