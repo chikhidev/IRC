@@ -52,16 +52,12 @@ public:
 
     void createChannel(const std::string &, Client&);
     void removeChannel(const std::string &);
-    void addClientToChannel(const std::string &, Client &);
     void removeClientFromChannel(const std::string &, Client &);
     
-    Client& getClient(int);
-    Client& getClientByNick(const std::string &);
-    Channel& getChannel(const std::string&);
-
-    bool channelExists(const std::string&) const;
-
-    Client* existingNick(const std::string &);
+    Client* getClient(int);
+    Client* getClientByNick(const std::string &);
+    Channel* getChannel(const std::string&);
+    
     void addUniqueNick(const std::string &, Client &);
     void removeUniqueNick(const std::string &);
 

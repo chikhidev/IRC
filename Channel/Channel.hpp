@@ -15,7 +15,11 @@ class Channel {
     std::map<char, bool> modes;
     std::string password;
     size_t user_limit;
+    std::map<std::string, Client*> invited;
 
+
+
+    
     void initModes();
 
 public:
@@ -46,7 +50,11 @@ public:
     void removeOperator(Client &);
 
     bool isFull() const;
+    bool isInvited(Client &) const;
+    void addInvited(Client &);
+    void removeInvited(Client &);
 
+    bool isMatchingPassword(const std::string &) const;
 };
 
 #endif

@@ -14,6 +14,7 @@ SERVICES_COMMANDS=\
 	Services/commands/mode.cpp \
 	Services/commands/prvmsg.cpp \
 	Services/commands/kick.cpp \
+	Services/commands/invite.cpp \
 
 SRC=Server/Server.cpp \
 	Services/Services.cpp \

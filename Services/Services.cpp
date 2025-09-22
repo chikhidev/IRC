@@ -15,6 +15,7 @@ Services::Services(Server *srv) : server(srv)
     command_map["MODE"] = &Services::mode;
     command_map["PRIVMSG"] = &Services::prvmsg;
     command_map["KICK"] = &Services::kick;
+    command_map["INVITE"] = &Services::invite;
 }
 
 
@@ -184,17 +185,23 @@ void Services::handleCommand(int client_fd)
         throw std::runtime_error("Server reference is null");
     }
 
-    Client &client = server->getClient(client_fd);
+    Client *client = server->getClient(client_fd);
+
+    if (!client) {
+        std::cerr << "[SERVICE] No client found for fd " << client_fd << std::endl;
+        return;
+    }
+
     std::string payload = cmd_shot(client_fd);
-    std::stringstream &cmdStream = client.getCommandStream();
+    std::stringstream &cmdStream = client->getCommandStream();
     
     if (!payload.empty() && payload.back() != '\n')
     {
         cmdStream << payload;
 
         if (cmdStream.str().length() > MAX_COMMAND_LENGTH) {
-            server->dmClient(client, 414, "Command too long");
-            client.clearCommandStream();
+            server->dmClient(*client, 414, "Command too long");
+            client->clearCommandStream();
         }
 
         return; // here we stop to give other clients their chances to
@@ -212,6 +219,6 @@ void Services::handleCommand(int client_fd)
     }
 
     for (size_t i = 0; i < commands.size(); ++i)
-        processCommandLine(client, client_fd, commands[i]);
+        processCommandLine(*client, client_fd, commands[i]);
 }
 

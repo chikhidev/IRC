@@ -10,8 +10,10 @@ void Services::mode(Client &client, std::vector<std::string> &params)
         server->dmClient(client, 461, "MODE :Not enough parameters");
         return;
     }
+    
+    Channel *existing_channel = server->getChannel(params[0]);
 
-    if (!server->channelExists(params[0])) {
+    if (!existing_channel) {
         server->dmClient(client, 403, params[0] + " :No such channel");
         return;
     }
@@ -21,9 +23,8 @@ void Services::mode(Client &client, std::vector<std::string> &params)
         return;
     }
 
-    Channel existing_channel = server->getChannel(params[0]);
 
-    if (!existing_channel.isOperator(client)) {
+    if (!existing_channel->isOperator(client)) {
         server->dmClient(client, 482, params[0] + " :You're not channel operator");
         return;
     }
@@ -34,16 +35,16 @@ void Services::mode(Client &client, std::vector<std::string> &params)
         switch (chosen_mode) {
             case 'i':
             case 't':
-                existing_channel.updateMode(chosen_mode, params[1][0] == '+');
+                existing_channel->updateMode(chosen_mode, params[1][0] == '+');
                 break;
             case 'k':
-                handlePass(existing_channel, client, params);
+                handlePass(*existing_channel, client, params);
                 break;
             case 'l':
-                handleMembersLimit(existing_channel, client, params);
+                handleMembersLimit(*existing_channel, client, params);
                 break;
             case 'o':
-                handleOperator(existing_channel, client, params);
+                handleOperator(*existing_channel, client, params);
                 break;
             default:
                 server->dmClient(client, 472, std::string(1, chosen_mode) + " :is not a valid mode");
@@ -98,8 +99,13 @@ void Services::handleOperator(Channel &c, Client &client, std::vector<std::strin
     }
 
     std::string &target_nick = params[2];
+    Client *target_client = server->getClientByNick(target_nick);
+    if (!target_client) {
+        server->dmClient(client, 401, target_nick + " :No such nick/channel");
+        return;
+    }
 
-    if (!c.isMember(*server->existingNick(target_nick))) {
+    if (!c.isMember(*target_client)) {
         server->dmClient(client, 441, target_nick + " :They aren't on that channel");
         return;
     }

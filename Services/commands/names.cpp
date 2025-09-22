@@ -25,22 +25,19 @@ void Services::names(Client &client, std::vector<std::string> &params)
         return;
     }
 
-    channel_name.erase(0, 1);
-
-    if (!server->channelExists(channel_name)) {
+    Channel *channel = server->getChannel(channel_name);
+    if (!channel) {
         server->dmClient(client, 403, channel_name + " :No such channel");
         server->dmClient(client, 366, channel_name + " :End of /NAMES list");
         return;
     }
 
-    Channel &channel = server->getChannel(channel_name);
-
-    if (!channel.isMember(client)) {
+    if (!channel->isMember(client)) {
         server->dmClient(client, 442, channel_name + " :You're not on that channel");
         server->dmClient(client, 366, channel_name + " :End of /NAMES list");
         return;
     }
 
-    channel.listMembers(client);
+    channel->listMembers(client);
 }
 /*--------------------------------------------------------------*/

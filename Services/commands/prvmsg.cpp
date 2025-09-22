@@ -21,8 +21,6 @@ void Services::prvmsg(Client &client, std::vector<std::string> &params) {
         return;
     }
 
-    message.erase(0, 1); // Remove leading ':'
-
     if (target.empty() || message.empty()) {
         server->dmClient(client, 461, "PRIVMSG :Not enough parameters");
         return;
@@ -30,25 +28,30 @@ void Services::prvmsg(Client &client, std::vector<std::string> &params) {
 
     // Check if the target is a channel
     if (target[0] == '#') {
-        Channel &channel = server->getChannel(target);
+        Channel *channel = server->getChannel(target);
 
-        if (!channel.isMember(client)) {
+        if (!channel) {
+            server->dmClient(client, 403, target + " :No such channel");
+            return;
+        }
+
+        if (!channel->isMember(client)) {
             server->dmClient(client, 442, target + " :You're not on that channel");
             return;
         }
 
         // Broadcast the message to all members of the channel
-        channel.broadcastToMembers(client, "PRIVMSG " + target + " :" + message);
+        channel->broadcastToMembers(client, "PRIVMSG " + target + " " + message);
         return;
     } else {
         // Target is a user
-        Client &target_client = server->getClientByNick(target);
+        Client *target_client = server->getClientByNick(target);
 
         // Send the private message to the target client
         // server->dmClient(target_client, 250, "PRIVMSG " + target + " :" + message);
-        client.sendMessage(target_client, "PRIVMSG " + target + " :" + message);
+        client.sendMessage(*target_client, "PRIVMSG " + target + (message.empty() ? "" : " " + message));
         // Acknowledge the sender
-        server->dmClient(client, 250, "PRIVMSG " + target + " :" + message);
+        server->dmClient(client, 250, "PRIVMSG " + target + (message.empty() ? "" : " " + message));
         return;
     }
 

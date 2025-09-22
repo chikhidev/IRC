@@ -156,14 +156,12 @@ void Client::quitAllChannels() {
     for (int i = channel_count - 1; i >= 0; --i) {
         server->log("[CLIENT] Client " + std::to_string(fd) + " quitting channel " + joined_channels[i]);
 
-        if (server->channelExists(joined_channels[i])) {
-            Channel& channel = server->getChannel(joined_channels[i]);
-            if (channel.isMember(*this)) {
-                std::string quit_message = "PART " + channel.getName();
-                channel.broadcastToMembers(*this, quit_message);
-                channel.removeMember(*this);
+            Channel* channel = server->getChannel(joined_channels[i]);
+            if (channel && channel->isMember(*this)) {
+                std::string quit_message = "PART " + channel->getName();
+                channel->broadcastToMembers(*this, quit_message);
+                channel->removeMember(*this);
             }
-        }
     }
 
     joined_channels.clear();

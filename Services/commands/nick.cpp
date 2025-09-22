@@ -30,8 +30,7 @@ void Services::nick(Client &client, std::vector<std::string> &params)
     }
 
     // Check if nickname is already in use
-    Client *existing_client = server->existingNick(params[0]);
-
+    Client *existing_client = server->getClientByNick(params[0]);
     if (existing_client && existing_client != &client)
     {
         server->dmClient(client, 433, "NICK: Nickname is already in use");
@@ -41,6 +40,6 @@ void Services::nick(Client &client, std::vector<std::string> &params)
     server->removeUniqueNick(client.getNick());
     client.setNick(params[0]);
     server->addUniqueNick(params[0], client);
-    std::string response = ":" + params[0] + " NICK " + params[0];
+    std::string response = client.getNick() + " NICK " + params[0];
     server->dmClient(client, 0, response);
 }

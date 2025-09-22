@@ -20,12 +20,16 @@ void Services::user(Client& client, std::vector<std::string>& params) {
     std::string username = params[0];
     std::string realname = params[3];
 
+    if (realname[0] != ':') {
+        server->dmClient(client, 461, "USER :Badly formed realname");
+        return;
+    }
+    
+    realname.erase(0, 1);
+    
     for (size_t i = 4; i < params_size; i++) {
         realname += " " + params[i];
     }
-
-    if (realname[0] == ':')
-        realname.erase(0, 1);
 
     client.setUsername(username);
     client.setRealname(realname);

@@ -203,16 +203,6 @@ void Server::removeClient(Client& client)
     close(client_fd);
 }
 
-/*
-* Get a client by nickname
-*/
-Client* Server::existingNick(const std::string &nick) {
-    std::map<std::string, Client*>::iterator it = unique_nicks.find(nick);
-    if (it != unique_nicks.end()) {
-        return (it->second);
-    }
-    return NULL;
-}
 
 /* Add a unique nickname to the map
 */
@@ -261,22 +251,22 @@ bool Server::isPasswordMatching(const std::string &pass) const
 /*
 * Public method for the service to access a client by fd
 */
-Client& Server::getClient(int fd)
+Client* Server::getClient(int fd)
 {
     std::map<int, Client*>::iterator it = clients.find(fd);
     if (it == clients.end()) {
-        throw std::runtime_error("Client not found");
+        return NULL;
     }
-    return *it->second;
+    return it->second; 
 }
 
-Client& Server::getClientByNick(const std::string &nick)
+Client* Server::getClientByNick(const std::string &nick)
 {
     std::map<std::string, Client*>::iterator it = unique_nicks.find(nick);
     if (it == unique_nicks.end()) {
-        throw std::runtime_error("Client not found");
+        return NULL;
     }
-    return *it->second;
+    return it->second;
 }
 
 /*
@@ -368,13 +358,13 @@ void Server::sendMessage(Client& client, const std::string& message) {
 /*
 * Public method for the service to access a channel by name
 */
-Channel& Server::getChannel(const std::string& name)
+Channel* Server::getChannel(const std::string& name)
 {
     std::map<std::string, Channel*>::iterator it = channels.find(name);
     if (it == channels.end()) {
-        throw std::runtime_error("Channel not found: " + name);
+        return NULL;
     }
-    return *it->second;
+    return it->second;
 }
 
 
@@ -398,32 +388,6 @@ void Server::removeChannel(const std::string& name)
     }
     delete it->second;
     channels.erase(it);
-}
-
-/*
-* Public method for the service to check if a channel exists
-*/
-bool Server::channelExists(const std::string& name) const
-{
-    return channels.find(name) != channels.end();
-}
-
-/*
-* Public method for the service to add a client to a channel
-*/
-void Server::addClientToChannel(const std::string& channel_name, Client& client)
-{
-    Channel& channel = getChannel(channel_name);
-    channel.addMember(client);
-}
-
-/*
-* Public method for the service to remove a client from a channel
-*/
-void Server::removeClientFromChannel(const std::string& channel_name, Client& client)
-{
-    Channel& channel = getChannel(channel_name);
-    channel.removeMember(client);
 }
 /*--------------------------------------------------------------*/
 

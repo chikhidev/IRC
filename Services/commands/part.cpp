@@ -22,26 +22,33 @@ void Services::part(Client &client, std::vector<std::string> &params) {
         return;
     }
 
-    std::string reason = ":Leaving";
+    std::string reason;
     if (params.size() == 2) {
         reason = params[1];
+        if (reason[0] != ':') {
+            server->dmClient(client, 403, "PART :Bad parameters");
+            return;
+        }
     }
 
+
+
     try {
-        if (!server->channelExists(channel_name)) {
+        Channel *_channel = server->getChannel(channel_name);
+        if (!_channel) {
             server->dmClient(client, 403, "PART :No such channel");
             return;
         }
 
-        Channel &_channel = server->getChannel(channel_name);
 
-        if (!_channel.isMember(client)) {
+        if (!_channel->isMember(client)) {
             server->dmClient(client, 442, "PART :You're not on that channel");
             return;
         }
 
-        _channel.broadcastToMembers(client, "PART :" + channel_name + (reason.empty() ? "" : " (" + reason + ")"));
-        _channel.removeMember(client);
+        _channel->broadcastToMembers(client, "PART :" + channel_name + (reason.empty() ? "" : " " + reason));
+        server->dmClient(client, 221, "PART :" + channel_name + (reason.empty() ? "" : " " + reason));
+        _channel->removeMember(client);
 
     } catch (const std::exception &e) {
         server->dmClient(client, 403, "PART :" + std::string(e.what()));

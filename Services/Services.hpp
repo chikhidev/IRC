@@ -36,6 +36,7 @@ public:
     void topic(Client&, std::vector<std::string>&);
     void prvmsg(Client&, std::vector<std::string>&);
     void kick(Client&, std::vector<std::string>&);
+    void invite(Client&, std::vector<std::string>&);
 
     void mode(Client&, std::vector<std::string>&);
         void handlePass(Channel&, Client&, std::vector<std::string>&);

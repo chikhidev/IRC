@@ -38,30 +38,29 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
         return ;
     }
     
-    if (!server->channelExists(channel_name)) {
+    Channel *channel = server->getChannel(channel_name);
+    if (!channel) {
         server->dmClient(client, 403, channel_name + " :No such channel");
         return;
     }
-    
-    Channel &channel = server->getChannel(channel_name);
 
-    if (!channel.isMember(client)) {
+    if (!channel->isMember(client)) {
         server->dmClient(client, 442, channel_name + " :You're not a member of that channel");
         return;
     }
 
     if (new_topic.empty()) {
-        if (channel.getTopic().empty()) {
-            server->dmClient(client, 331, channel.getName() + " :No topic is set");
+        if (channel->getTopic().empty()) {
+            server->dmClient(client, 331, channel->getName() + " :No topic is set");
         } else {
-            server->dmClient(client, 332, channel.getName() + " :" + channel.getTopic());
+            server->dmClient(client, 332, channel->getName() + " :" + channel->getTopic());
         }
 
         return ;
     }
 
-    bool is_operator = channel.isOperator(client);
-    bool only_operators = channel.mode('t');
+    bool is_operator = channel->isOperator(client);
+    bool only_operators = channel->mode('t');
 
     if (only_operators && !is_operator) {
         server->dmClient(client, 482, channel_name + " :Only channel operators may set the topic");
@@ -72,8 +71,8 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
         new_topic.erase(0, 1); // Remove leading ':' if present
     }
     
-    channel.setTopic(new_topic);
+    channel->setTopic(new_topic);
     server->dmClient(client, 332, channel_name + " :" + new_topic);
-    channel.broadcastToMembers(client, ":" + client.getNick() + " TOPIC " + channel_name + " :" + new_topic);
+    channel->broadcastToMembers(client, ":" + client.getNick() + " TOPIC " + channel_name + " :" + new_topic);
     
 }

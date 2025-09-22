@@ -29,11 +29,7 @@ std::string Channel::getName() const {
     return name;
 }
 
-void Channel::addMember(Client &client) {
-    if (isMember(client)) {
-        throw std::runtime_error("Client is already a member of the channel");
-    }
-
+void Channel::addMember(Client &client) { 
     members[client.getFd()] = &client;
     client.addToJoinedChannels(name);
 }
@@ -210,4 +206,23 @@ void Channel::updateUserLimit(size_t limit) {
 bool Channel::isFull() const {
     return modes.at('l') &&
         (members.size() + operators.size()) >= user_limit;
+}
+
+
+
+bool Channel::isInvited(Client &client) const {
+    return invited.find(client.getNick()) != invited.end();
+}
+
+void Channel::addInvited(Client &client) {
+    invited[client.getNick()] = &client;
+}
+
+void Channel::removeInvited(Client &client) {
+    invited.erase(client.getNick());
+}
+
+
+bool Channel::isMatchingPassword(const std::string &key) const {
+    return modes.at('k') && !password.empty() && password == key;
 }
