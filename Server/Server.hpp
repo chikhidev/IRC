@@ -26,6 +26,7 @@ class Server {
     void removePollFd(int);
     void registerClient(int, Client);
     void createClient();
+    void makeNonBlocking(int);
 
 public:
 

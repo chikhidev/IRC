@@ -10,6 +10,7 @@ SERVICES_COMMANDS=\
 	Services/commands/join.cpp \
 	Services/commands/part.cpp \
 	Services/commands/names.cpp \
+	Services/commands/topic.cpp \
 
 SRC=Server/Server.cpp \
 	Services/Services.cpp \

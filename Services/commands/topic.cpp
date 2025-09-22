@@ -3,7 +3,6 @@
 #include "../../Client/Client.hpp"
 #include "../../Channel/Channel.hpp"
 
-
 void Services::topic(Client &client, std::vector<std::string> &params) {
 
     if (!server) {

@@ -27,9 +27,7 @@ void Services::join(Client &client, std::vector<std::string> &params) {
     try {
         
         if (!server->channelExists(channel_name)) {
-            server->createChannel(channel_name, client);
-        } else {
-            server->addClientToChannel(channel_name, client);
+            return server->createChannel(channel_name, client);
         }
 
         Channel &_channel = server->getChannel(channel_name);
@@ -38,6 +36,8 @@ void Services::join(Client &client, std::vector<std::string> &params) {
             server->dmClient(client, 443, "JOIN :You're already on that channel");
             return;
         }
+
+        server->addClientToChannel(channel_name, client);
 
         _channel.broadcastToMembers(client, "JOIN :#" + channel_name);
 

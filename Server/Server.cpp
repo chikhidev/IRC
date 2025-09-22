@@ -3,6 +3,16 @@
 #include "../Client/Client.hpp"
 #include "../Channel/Channel.hpp"
 
+void Server::makeNonBlocking(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1) {
+        throw std::runtime_error("Failed to get file descriptor flags");
+    }
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        throw std::runtime_error("Failed to set non-blocking mode");
+    }
+}
+
 Server::Server(int p) : poll_fds(NULL), poll_count(0)
 {
     fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -18,6 +28,8 @@ Server::Server(int p) : poll_fds(NULL), poll_count(0)
         close(fd);
         throw std::runtime_error("Setsockopt failed");
     }
+
+    makeNonBlocking(fd);
 
     port = p;
     addr.sin_family = AF_INET;
@@ -230,6 +242,7 @@ void Server::createClient()
     }
 
     clients[new_socket] = new Client(new_socket, client_addr, addr_len, this);
+    makeNonBlocking(new_socket);
     addPollFd(new_socket);
 
     std::cout << "[SERVER] Client connected: " << new_socket << std::endl;
@@ -409,7 +422,9 @@ void Server::removeClientFromChannel(const std::string& channel_name, Client& cl
 
 
 
-
+/*
+* Public method for the service to log messages
+*/
 void Server::log(const std::string &message) const {
     std::cout << "[SERVER] " << message << std::endl;
 }

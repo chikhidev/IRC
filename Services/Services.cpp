@@ -11,6 +11,7 @@ Services::Services(Server *srv) : server(srv)
     command_map["JOIN"] = &Services::join;
     command_map["PART"] = &Services::part;
     command_map["NAMES"] = &Services::names;
+    command_map["TOPIC"] = &Services::topic;
 }
 
 
