@@ -34,6 +34,7 @@ void Channel::addMember(Client &client) {
     client.addToJoinedChannels(name);
 }
 
+
 void Channel::removeMember(Client &client) {
 
     if (!server) {
@@ -42,13 +43,6 @@ void Channel::removeMember(Client &client) {
 
     std::map<int, Client*>::iterator it = members.find(client.getFd());
     if (it != members.end()) {
-
-        if (isOperator(client) && operators.size() == 1) {
-            broadcastToMembers(client, "NOTICE " + name + " :The channel operator has left the channel, the channel will be removed.");
-            server->removeChannel(name);
-            return;
-        }
-
         members.erase(it);
         client.removeFromJoinedChannels(name);
 
@@ -196,9 +190,6 @@ void Channel::updatePassword(const std::string &new_password) {
 }
 
 void Channel::updateUserLimit(size_t limit) {
-    if (limit < 0) {
-        throw std::runtime_error("User limit cannot be negative");
-    }
     user_limit = limit;
 }
 
@@ -224,5 +215,6 @@ void Channel::removeInvited(Client &client) {
 
 
 bool Channel::isMatchingPassword(const std::string &key) const {
-    return modes.at('k') && !password.empty() && password == key;
+    if (!modes.at('k')) return true;
+    return !password.empty() && password == key;
 }

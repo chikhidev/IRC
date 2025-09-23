@@ -46,12 +46,14 @@ void Services::prvmsg(Client &client, std::vector<std::string> &params) {
     } else {
         // Target is a user
         Client *target_client = server->getClientByNick(target);
+        if (!target_client) {
+            server->dmClient(client, 401, target + " :No such nick/channel");
+            return;
+        }
 
         // Send the private message to the target client
         // server->dmClient(target_client, 250, "PRIVMSG " + target + " :" + message);
         client.sendMessage(*target_client, "PRIVMSG " + target + (message.empty() ? "" : " " + message));
-        // Acknowledge the sender
-        server->dmClient(client, 250, "PRIVMSG " + target + (message.empty() ? "" : " " + message));
         return;
     }
 

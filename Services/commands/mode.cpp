@@ -118,10 +118,10 @@ void Services::handleOperator(Channel &c, Client &client, std::vector<std::strin
     bool add_operator = params[1][0] == '+';
 
     if (add_operator) {
-        c.addOperator(client);
+        c.addOperator(*target_client);
         server->dmClient(client, 324, c.getName() + " +o " + target_nick);
     } else {
-        c.removeOperator(client);
-        server->dmClient(client, 324, c.getName() + " -o " + target_nick);  
+        c.removeOperator(*target_client);
+        server->dmClient(client, 324, c.getName() + " -o " + target_nick);
     }
 }

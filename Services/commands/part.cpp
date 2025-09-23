@@ -26,7 +26,7 @@ void Services::part(Client &client, std::vector<std::string> &params) {
     if (params.size() == 2) {
         reason = params[1];
         if (reason[0] != ':') {
-            server->dmClient(client, 403, "PART :Bad parameters");
+            server->dmClient(client, 461, "PART :Bad parameters");
             return;
         }
     }
@@ -48,6 +48,13 @@ void Services::part(Client &client, std::vector<std::string> &params) {
 
         _channel->broadcastToMembers(client, "PART :" + channel_name + (reason.empty() ? "" : " " + reason));
         server->dmClient(client, 221, "PART :" + channel_name + (reason.empty() ? "" : " " + reason));
+
+        if (_channel->isOperator(client) && _channel->getOperators().size() == 1) {
+            _channel->broadcastToMembers(client, "NOTICE " + _channel->getName() + " :The channel operator has left the channel, the channel will be removed.");
+            server->removeChannel(_channel->getName());
+            return;
+        }
+
         _channel->removeMember(client);
 
     } catch (const std::exception &e) {

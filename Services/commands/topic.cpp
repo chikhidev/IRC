@@ -27,7 +27,7 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
         new_topic = params[1];
 
         for (size_t i = 2; i < params.size(); ++i) {
-            new_topic += params[i] + " ";
+            new_topic += " " + params[i];
         }
     }
 
