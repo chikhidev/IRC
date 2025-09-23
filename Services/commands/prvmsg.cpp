@@ -42,7 +42,8 @@ void Services::prvmsg(Client &client, std::vector<std::string> &params) {
         }
 
         // Broadcast the message to all members of the channel
-        channel->broadcastToMembers(client, "PRIVMSG " + target + " " + message);
+        channel->broadcastToMembers(client, ":" + client.getNick() + " PRIVMSG " + target + " :" + message);
+        
         return;
     } else {
         // Target is a user

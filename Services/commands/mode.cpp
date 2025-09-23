@@ -68,7 +68,8 @@ void Services::handlePass(Channel &c, Client &client, std::vector<std::string> &
 
     c.updateMode('k', set_pass);
     c.updatePassword(params[2]);
-    server->dmClient(client, 324, c.getName() + " " + (set_pass ? "+k" : "-k"));
+    std::string mode_change = ":" + client.getNick() + " MODE " + c.getName() + " " + (set_pass ? "+k" : "-k");
+    c.broadcastToMembers(client, mode_change);
 }
 
 /* MODE #channel +l <limit> or MODE #channel -l */

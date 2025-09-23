@@ -68,6 +68,6 @@ void Services::kick(Client &client, std::vector<std::string> &params)
         return;
     }
 
-    std::string kick_msg = "KICK " + channel_name + " " + user_to_kick + " " + reason;
+    std::string kick_msg = ":" + client.getNick() + " KICK " + channel_name + " " + user_to_kick + (reason.empty() ? "" : " " + reason);
     channel->broadcastToMembers(client, kick_msg);
 }

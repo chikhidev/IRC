@@ -61,5 +61,5 @@ void Services::invite(Client &client, std::vector<std::string>& params)
     }
 
     server->dmClient(client, 341, targetNickname + " " + channelName);
-    channel->broadcastToMembers(client, "INVITE " + targetNickname + " :" + channelName);
+    client.sendMessage(*targetClient, "INVITE " + targetNickname + " " + channelName);
 }

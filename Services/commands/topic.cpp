@@ -67,7 +67,6 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
     }
     
     channel->setTopic(new_topic);
-    server->dmClient(client, 332, channel_name + " :" + new_topic);
     channel->broadcastToMembers(client, ":" + client.getNick() + " TOPIC " + channel_name + " :" + new_topic);
     
 }
