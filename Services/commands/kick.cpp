@@ -18,7 +18,7 @@ void Services::kick(Client &client, std::vector<std::string> &params)
     if (params.size() > 2) {
         reason = params[2];
 
-        if (reason[0] != ':') {
+        if (reason.empty() || reason[0] != ':') {
             server->dmClient(client, 461, "KICK :reason badly formatted");
             return;
         }

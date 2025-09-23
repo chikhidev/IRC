@@ -12,8 +12,9 @@ void Services::prvmsg(Client &client, std::vector<std::string> &params) {
     std::string target = params[0];
     std::string message = params[1];
 
-    for (size_t i = 2; i < params.size(); ++i) {
-        message += " " + params[i];
+    if (target.empty() || message.empty()) {
+        server->dmClient(client, 461, "PRIVMSG :Not enough parameters");
+        return;
     }
 
     if (message[0] != ':') {
@@ -21,9 +22,9 @@ void Services::prvmsg(Client &client, std::vector<std::string> &params) {
         return;
     }
 
-    if (target.empty() || message.empty()) {
-        server->dmClient(client, 461, "PRIVMSG :Not enough parameters");
-        return;
+    message.erase(0, 1);
+    for (size_t i = 2; i < params.size(); ++i) {
+        message += " " + params[i];
     }
 
     // Check if the target is a channel
@@ -56,7 +57,4 @@ void Services::prvmsg(Client &client, std::vector<std::string> &params) {
         client.sendMessage(*target_client, "PRIVMSG " + target + (message.empty() ? "" : " " + message));
         return;
     }
-
-    // If the target is neither a channel nor a user
-    server->dmClient(client, 401, target + " :No such nick/channel");
 }

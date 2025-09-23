@@ -25,17 +25,16 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
 
     if (params.size() > 1) {
         new_topic = params[1];
+        if (new_topic.empty() || new_topic[0] != ':') {
+            server->dmClient(client, 461, "TOPIC :badly formed topic");
+            return ;
+        }
+
+        new_topic.erase(0, 1);
 
         for (size_t i = 2; i < params.size(); ++i) {
             new_topic += " " + params[i];
         }
-    }
-
-    server->log("[SERVICES] TOPIC command by " + client.getNick() + " on channel " + channel_name + " with topic: " + new_topic);
-
-    if (!new_topic.empty() && new_topic[0] != ':') {
-        server->dmClient(client, 461, "TOPIC :badly formed topic");
-        return ;
     }
     
     Channel *channel = server->getChannel(channel_name);
@@ -65,10 +64,6 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
     if (only_operators && !is_operator) {
         server->dmClient(client, 482, channel_name + " :Only channel operators may set the topic");
         return;
-    }
-
-    if (new_topic[0] == ':') {
-        new_topic.erase(0, 1); // Remove leading ':' if present
     }
     
     channel->setTopic(new_topic);

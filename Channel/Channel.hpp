@@ -55,6 +55,7 @@ public:
     void removeInvited(Client &);
 
     bool isMatchingPassword(const std::string &) const;
+    size_t getOperatorsCount() const;
 };
 
 #endif

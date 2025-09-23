@@ -3,7 +3,7 @@
 #include "../../Client/Client.hpp"
 #include "../../Channel/Channel.hpp"
 
-
+/* MODE #channel +/-mode params */
 void Services::mode(Client &client, std::vector<std::string> &params)
 {
     if (params.size() < 2) {
@@ -56,6 +56,7 @@ void Services::mode(Client &client, std::vector<std::string> &params)
     }
 }
 
+/* MODE #channel +k <key> or MODE #channel -k */
 void Services::handlePass(Channel &c, Client &client, std::vector<std::string> &params)
 {
     if (params.size() < 3) {
@@ -70,6 +71,7 @@ void Services::handlePass(Channel &c, Client &client, std::vector<std::string> &
     server->dmClient(client, 324, c.getName() + " " + (set_pass ? "+k" : "-k"));
 }
 
+/* MODE #channel +l <limit> or MODE #channel -l */
 void Services::handleMembersLimit(Channel &c, Client &client, std::vector<std::string> &params)
 {
     bool set_limit = params[1][0] == '+';
@@ -91,9 +93,10 @@ void Services::handleMembersLimit(Channel &c, Client &client, std::vector<std::s
     }
 }
 
+/* MODE #channel +/-o <nick>*/
 void Services::handleOperator(Channel &c, Client &client, std::vector<std::string> &params)
 {
-    if (params.size() < 2) {
+    if (params.size() < 3) {
         server->dmClient(client, 461, "MODE :Not enough parameters");
         return;
     }

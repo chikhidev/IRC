@@ -11,6 +11,7 @@ Channel::Channel() : name(""), server(NULL) {
 Channel::Channel(const std::string &channel_name, Client &creator, Server *srv) : server(srv) { 
     name = channel_name;
     operators[creator.getNick()] = &creator;
+    creator.addToJoinedChannels(name);
     initModes();
     user_limit = 10;
 }
@@ -45,12 +46,6 @@ void Channel::removeMember(Client &client) {
     if (it != members.end()) {
         members.erase(it);
         client.removeFromJoinedChannels(name);
-
-        if (isEmpty()) {
-            std::cout << "[CHANNEL " << name << "] Channel " << name << " is empty. Removing it from server." << std::endl;
-            server->removeChannel(name);
-        }
-
     } else {
         throw std::runtime_error("Client is not a member of the channel");
     }
@@ -217,4 +212,8 @@ void Channel::removeInvited(Client &client) {
 bool Channel::isMatchingPassword(const std::string &key) const {
     if (!modes.at('k')) return true;
     return !password.empty() && password == key;
+}
+
+size_t Channel::getOperatorsCount() const {
+    return operators.size();
 }
