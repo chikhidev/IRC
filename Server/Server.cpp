@@ -169,27 +169,26 @@ void Server::removeClient(int client_fd)
 
     // Check the clients map
     std::map<int, Client*>::iterator it = clients.find(client_fd);
-    if (it == clients.end())
+    if (it != clients.end())
     {
-        std::cerr << "[SERVER] Client fd " << client_fd << " not found in clients map." << std::endl;
-        return;
+        Client* existing_client = getClient(client_fd);
+        if (existing_client) {
+            existing_client->disconnect();
+            existing_client->quitAllChannels();
+
+            if (existing_client->hasNick()) {
+                removeUniqueNick(existing_client->getNick());
+            }
+
+            delete existing_client;
+
+            std::cout << "[SERVER] Client " << client_fd << " disconnected and removed." << std::endl;
+        }
+        
+        clients.erase(it);
+        removePollFd(client_fd);
+        close(client_fd);
     }
-
-    it->second->disconnect();
-
-    if (it->second->hasNick()) {
-        removeUniqueNick(it->second->getNick());
-    }
-
-    it->second->quitAllChannels();
-
-    std::cout << "[SERVER] Client " << client_fd << " disconnected and removed." << std::endl;
-    clients.erase(it);
-    delete it->second;
-    
-    // Remove from poll_fds
-    removePollFd(client_fd);
-    close(client_fd);
 }
 
 void Server::removeClient(Client& client)
