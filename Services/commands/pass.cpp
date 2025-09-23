@@ -24,13 +24,13 @@ void Services::pass(Client &client, std::vector<std::string> &params)
         return;
     }
 
+    if (client.isAuthenticated()) {
+        server->dmClient(client, 462, "You may not authenticate again");
+        return;
+    }
+
     if (server->isPasswordMatching(password))
     {
-        if (client.isAuthenticated()) {
-            server->dmClient(client, 462, "You may not authenticate again");
-            return;
-        }
-
         client.setAuthenticated(true);
         server->dmClient(client, 001, "Welcome to the IRC server!");
         return ;

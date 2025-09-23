@@ -21,7 +21,7 @@ public:
     ~Services();
 
     void handleCommand(int);
-    void processCommandLine(Client&, int, std::string&);
+    bool processCommandLine(Client&, int, std::string&);
 
     bool isAuth(Client&, std::string&);
     bool isRegistered(Client&, std::string&);

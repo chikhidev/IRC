@@ -136,12 +136,12 @@ void debug_client(Client &client, int client_fd, const std::string &command, con
 /*
 * Process a single command line from a client
 */
-void Services::processCommandLine(Client &client, int client_fd, std::string &command_line)
+bool Services::processCommandLine(Client &client, int client_fd, std::string &command_line)
 {
     std::string _cmd = stripTrailingTerminators(command_line, client);
 
     if (_cmd.empty())
-        return;
+        return true;
 
     std::istringstream iss(_cmd);
     std::string command;
@@ -149,7 +149,7 @@ void Services::processCommandLine(Client &client, int client_fd, std::string &co
     std::string params;
     std::getline(iss, params);
 
-    if (!client.isConnected()) return;
+    if (!client.isConnected()) return false;
 
     std::cout << "[SERVICE] Received command from fd " << client_fd << ": " << command_line << std::endl;
 
@@ -160,8 +160,8 @@ void Services::processCommandLine(Client &client, int client_fd, std::string &co
 
     if (it != command_map.end())
     {
-        if (!isAuth(client, command)) return;
-        if (!isRegistered(client, command)) return;
+        if (!isAuth(client, command)) return false;
+        if (!isRegistered(client, command)) return false;
         debug_client(client, client_fd, command, param_list);
 
         try {
@@ -170,13 +170,19 @@ void Services::processCommandLine(Client &client, int client_fd, std::string &co
             std::cerr << "[ERROR] Exception while processing command " << command << ": " << e.what() << std::endl;
         }
 
-        client.clearCommandStream();
-        return;
+        Client* existing_client = server->getClient(client_fd);
+        if (existing_client == NULL) return false;
+        
+        existing_client->clearCommandStream();
+        return true;
     }
 
     std::cout << "[SERVICE] Unknown command: " << command << std::endl;
-    server->dmClient(client, 421, command + " :Unknown command");
-    client.clearCommandStream();
+    Client* existing_client = server->getClient(client_fd);
+    if (existing_client == NULL) return false;
+    server->dmClient(*existing_client, 421, command + " :Unknown command");
+    existing_client->clearCommandStream();
+    return false;
 }
 
 /*
@@ -221,7 +227,17 @@ void Services::handleCommand(int client_fd)
         commands.push_back(line);
     }
 
-    for (size_t i = 0; i < commands.size(); ++i)
-        processCommandLine(*client, client_fd, commands[i]);
+    for (size_t i = 0; i < commands.size(); ++i) {
+        client = server->getClient(client_fd);
+        if (!client) {
+            std::cerr << "[SERVICE] No client found for fd " << client_fd << "" << std::endl;
+            return;
+        }
+
+        if (processCommandLine(*client, client_fd, commands[i]) == false) {
+            break;
+        }
+        
+    }
 }
 

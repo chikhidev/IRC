@@ -167,29 +167,6 @@ void Server::removeClient(int client_fd)
 {
     std::cout << "[SERVER] Removing client: " << client_fd << std::endl;
 
-    // Remove from clients map
-    std::map<int, Client*>::iterator it = clients.find(client_fd);
-    if (it != clients.end())
-    {
-        it->second->disconnect();
-        it->second->quitAllChannels();
-        std::cout << "[SERVER] Client " << client_fd << " disconnected and removed." << std::endl;
-        delete it->second;
-        clients.erase(it);
-    }
-    
-    // Remove from poll_fds
-    removePollFd(client_fd);
-
-    close(client_fd);
-}
-
-void Server::removeClient(Client& client)
-{
-    int client_fd = client.getFd();
-
-    std::cout << "[SERVER] Removing client: " << client_fd << std::endl;
-
     // Check the clients map
     std::map<int, Client*>::iterator it = clients.find(client_fd);
     if (it == clients.end())
@@ -199,19 +176,25 @@ void Server::removeClient(Client& client)
     }
 
     it->second->disconnect();
-    it->second->quitAllChannels();
 
     if (it->second->hasNick()) {
         removeUniqueNick(it->second->getNick());
     }
 
+    it->second->quitAllChannels();
+
     std::cout << "[SERVER] Client " << client_fd << " disconnected and removed." << std::endl;
-    delete it->second;
     clients.erase(it);
+    delete it->second;
     
     // Remove from poll_fds
     removePollFd(client_fd);
     close(client_fd);
+}
+
+void Server::removeClient(Client& client)
+{
+    removeClient(client.getFd());
 }
 
 

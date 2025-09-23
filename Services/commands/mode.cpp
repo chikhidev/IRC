@@ -36,6 +36,7 @@ void Services::mode(Client &client, std::vector<std::string> &params)
             case 'i':
             case 't':
                 existing_channel->updateMode(chosen_mode, params[1][0] == '+');
+                existing_channel->broadcastToMembers(client, ":" + client.getNick() + " MODE " + existing_channel->getName() + " " + params[1]);
                 break;
             case 'k':
                 handlePass(*existing_channel, client, params);
@@ -59,12 +60,17 @@ void Services::mode(Client &client, std::vector<std::string> &params)
 /* MODE #channel +k <key> or MODE #channel -k */
 void Services::handlePass(Channel &c, Client &client, std::vector<std::string> &params)
 {
-    if (params.size() < 3) {
+    if (params.size() < 2) {
         server->dmClient(client, 461, "MODE :Not enough parameters");
         return;
     }
 
     bool set_pass = params[1][0] == '+';
+
+    if (set_pass && params.size() < 3) {
+        server->dmClient(client, 461, "MODE :Not enough parameters");
+        return;
+    }
 
     c.updateMode('k', set_pass);
     c.updatePassword(params[2]);
@@ -87,10 +93,10 @@ void Services::handleMembersLimit(Channel &c, Client &client, std::vector<std::s
     if (set_limit) {
         int limit = std::atoi(params[2].c_str());
         c.updateUserLimit(limit);
-        server->dmClient(client, 324, c.getName() + " +l " + params[2]);
+        c.broadcastToMembers(client, ":" + client.getNick() + " MODE " + c.getName() + " +l " + params[2]);
     } else {
         c.updateUserLimit(0);
-        server->dmClient(client, 324, c.getName() + " -l");
+        c.broadcastToMembers(client, ":" + client.getNick() + " MODE " + c.getName() + " -l");
     }
 }
 
@@ -123,9 +129,11 @@ void Services::handleOperator(Channel &c, Client &client, std::vector<std::strin
 
     if (add_operator) {
         c.addOperator(*target_client);
-        server->dmClient(client, 324, c.getName() + " +o " + target_nick);
+        // server->dmClient(client, 324, c.getName() + " +o " + target_nick);
+        c.broadcastToMembers(client, ":" + client.getNick() + " MODE " + c.getName() + " +o " + target_nick);
     } else {
         c.removeOperator(*target_client);
-        server->dmClient(client, 324, c.getName() + " -o " + target_nick);
+        // server->dmClient(client, 324, c.getName() + " -o " + target_nick);
+        c.broadcastToMembers(client, ":" + client.getNick() + " MODE " + c.getName() + " -o " + target_nick);
     }
 }
