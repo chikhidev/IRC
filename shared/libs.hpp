@@ -8,15 +8,17 @@
 #include <stdexcept>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <poll.h>
+#include <sys/epoll.h>
 #include <map>
 #include <vector>
 #include <algorithm>
 #include <fcntl.h>
 #include <errno.h>
 
-
+#define MAX_CONNECTIONS 512
 #define MAX_COMMAND_LENGTH 1024
 #define NICK_LIMIT 9
+#define PING_INTERVAL 10
+#define CLIENT_TIMEOUT 15
 
 #endif

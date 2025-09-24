@@ -21,6 +21,7 @@ class Client {
     std::string command_terminators;
     std::vector<std::string> joined_channels;
     std::stringstream command_buffer;
+    int last_active_time;
 
 public:
 
@@ -64,6 +65,8 @@ public:
     std::stringstream& getCommandStream();
     void clearCommandStream();
 
+    size_t getLastActiveTime() const;
+    void setLastActiveTime(size_t);
 };
 
 

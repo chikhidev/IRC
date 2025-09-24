@@ -4,6 +4,7 @@
 
 Client::Client(): addr_len(sizeof(addr)), fd(-1), _isAuthenticated(false), _isRegistered(false), _connected(true), _sent_first_command(false), server(NULL) {
     memset(&addr, 0, sizeof(addr));
+    last_active_time = time(NULL);
 }
 
 Client::Client(int socket_fd, sockaddr_in address, socklen_t length, Server* srv) {
@@ -15,6 +16,7 @@ Client::Client(int socket_fd, sockaddr_in address, socklen_t length, Server* srv
     _connected = true;
     _sent_first_command = false;
     server = srv;
+    last_active_time = time(NULL);
 }
 
 Client::~Client() {
@@ -195,4 +197,12 @@ std::stringstream& Client::getCommandStream() {
 void Client::clearCommandStream() {
     command_buffer.str("");
     command_buffer.clear();
+}
+
+size_t Client::getLastActiveTime() const {
+    return last_active_time;
+}
+
+void Client::setLastActiveTime(size_t time) {
+    last_active_time = time;
 }

@@ -3,17 +3,10 @@
 #include "../Client/Client.hpp"
 #include "../Channel/Channel.hpp"
 
-void Server::makeNonBlocking(int fd) {
-    int flags = fcntl(fd, F_GETFL, 0);
-    if (flags == -1) {
-        throw std::runtime_error("Failed to get file descriptor flags");
-    }
-    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-        throw std::runtime_error("Failed to set non-blocking mode");
-    }
-}
-
-Server::Server(int p) : poll_fds(NULL), poll_count(0)
+/*
+* Just the constructor
+*/
+Server::Server(int p)
 {
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0)
@@ -48,17 +41,35 @@ Server::Server(int p) : poll_fds(NULL), poll_count(0)
         throw std::runtime_error("Listen failed");
     }
 
-    // Set up polling with initial server socket
-    poll_fds = new struct pollfd[1];
-    poll_fds[0].fd = fd;
-    poll_fds[0].events = POLLIN;
-    poll_count = 1;
+    epoll_fd = epoll_create1(0);
+    if (epoll_fd == -1) {
+        close(fd);
+        throw std::runtime_error("Epoll create failed");
+    }
+    event.events = EPOLLIN;
+    event.data.fd = fd;
+    // Add the server socket to the epoll instance
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event) == -1) {
+        close(fd);
+        close(epoll_fd);
+        throw std::runtime_error("Epoll ctl failed");
+    }
+
+    // Since the server socket is the only one in the set initially
+    event_count = 1;
 
     services = new Services(this);
+    
 }
 
+/*
+* Just the destructor
+*/
 Server::~Server()
 {
+    close(fd);
+
+    // Clean up clients
     std::map<int, Client*>::iterator cl_it = clients.begin();
     for (; cl_it != clients.end(); ++cl_it) {
         cl_it->second->disconnect();
@@ -67,15 +78,28 @@ Server::~Server()
     }
     clients.clear();
 
+    // Clean up channels
     std::map<std::string, Channel*>::iterator ch_it = channels.begin();
     for (; ch_it != channels.end(); ++ch_it) {
         delete ch_it->second;
     }
     channels.clear();
 
-    close(fd);
-    delete[] poll_fds;
+    close(epoll_fd);
     delete services;
+}
+
+/*
+* Force add non-blocking mode to a given file descriptor
+*/
+void Server::makeNonBlocking(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1) {
+        throw std::runtime_error("Failed to get file descriptor flags");
+    }
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        throw std::runtime_error("Failed to set non-blocking mode");
+    }
 }
 
 
@@ -108,56 +132,30 @@ void Server::registerClient(int fd, Client client)
 }
 
 /*
-* Add a file descriptor to the poll set
+* Add a file descriptor to the epoll set
 */
-void Server::addPollFd(int new_fd)
+void Server::addEpollFd(int new_fd)
 {
-    struct pollfd *new_poll_fds = new struct pollfd[poll_count + 1];
+    makeNonBlocking(new_fd);
+    event.data.fd = new_fd;
+    event.events = EPOLLIN;
 
-    if (!new_poll_fds) {
-        throw std::runtime_error("Failed to allocate memory for poll file descriptors");
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, new_fd, &event) == -1) {
+        throw std::runtime_error("Epoll ctl failed");
     }
 
-    for (int i = 0; i < poll_count; ++i)
-        new_poll_fds[i] = poll_fds[i];
-    
-    new_poll_fds[poll_count].fd = new_fd;
-    new_poll_fds[poll_count].events = POLLIN;
-
-    delete[] poll_fds;
-    poll_fds = new_poll_fds;
-    poll_count++;
+    event_count++;
 }
 
+
 /*
-* Remove a file descriptor from the poll set
+* Remove a file descriptor from the epoll set
 */
-void Server::removePollFd(int fd_to_remove)
+void Server::removeEpollFd(int fd_to_remove)
 {
-    int index = -1;
-    for (int i = 0; i < poll_count; ++i)
-    {
-        if (poll_fds[i].fd == fd_to_remove)
-        {
-            index = i;
-            break;
-        }
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd_to_remove, NULL) == -1) {
+        throw std::runtime_error("Epoll ctl remove failed");
     }
-    if (index == -1)
-        return; // Not found
-
-    struct pollfd *new_poll_fds = new struct pollfd[poll_count - 1];
-    for (int i = 0, j = 0; i < poll_count; ++i)
-    {
-        if (i != index)
-        {
-            new_poll_fds[j++] = poll_fds[i];
-        }
-    }
-
-    delete[] poll_fds;
-    poll_fds = new_poll_fds;
-    poll_count--;
 }
 
 /*
@@ -171,8 +169,12 @@ void Server::removeClient(int client_fd)
     std::map<int, Client*>::iterator it = clients.find(client_fd);
     if (it != clients.end())
     {
+        std::cout << "[SERVER] Found client " << client_fd << ", proceeding to disconnect." << std::endl;
+
         Client* existing_client = getClient(client_fd);
         if (existing_client) {
+            std::cout << "[SERVER] Found client instance, disconnecting." << std::endl;
+
             existing_client->disconnect();
             existing_client->quitAllChannels();
 
@@ -186,8 +188,16 @@ void Server::removeClient(int client_fd)
         }
         
         clients.erase(it);
-        removePollFd(client_fd);
+        std::cout << "[SERVER] Client " << client_fd << " erased from clients map." << std::endl;
+        removeEpollFd(client_fd);
+        std::cout << "[SERVER] Client " << client_fd << " removed from epoll set." << std::endl;
         close(client_fd);
+        std::cout << "[SERVER] Client " << client_fd << " socket closed." << std::endl;
+
+        event_count--;
+
+    } else {
+        std::cout << "[SERVER] Client " << client_fd << " not found in clients map." << std::endl;
     }
 }
 
@@ -226,7 +236,7 @@ void Server::createClient()
 
     clients[new_socket] = new Client(new_socket, client_addr, addr_len, this);
     makeNonBlocking(new_socket);
-    addPollFd(new_socket);
+    addEpollFd(new_socket);
 
     std::cout << "[SERVER] Client connected: " << new_socket << std::endl;
 }
@@ -264,7 +274,7 @@ Client* Server::getClientByNick(const std::string &nick)
 
 /*
 * Main server loop:
-* - Polls for events
+* - ePolls for events
 * - Accepts new connections
 * - Reads data from clients
 * - Handles client disconnections
@@ -276,23 +286,38 @@ void Server::loop()
 
     while (true)
     {
-        int ready = poll(poll_fds, poll_count, -1);
-        if (ready < 0)
-        {
-            throw std::runtime_error("Poll failed");
-        }
+        int n = epoll_wait(epoll_fd, events, MAX_CONNECTIONS, -1);
 
-        for (int i = poll_count - 1; i >= 0; --i)
+        for (int i = 0; i < n; ++i)
         {
-            if ((poll_fds[i].revents & POLLIN))
+            struct epoll_event &ev = events[i];
+
+            if (ev.events & EPOLLIN)
             {
-                if (poll_fds[i].fd == fd)
+                if (ev.data.fd == fd)
                 {
+                    if (event_count >= MAX_CONNECTIONS) {
+                        std::cerr << "[SERVER] Maximum connections reached, rejecting new connection." << std::endl;
+                        continue;
+                    }
+
                     std::cout << "[SERVER] New connection on server socket" << std::endl;
                     createClient();
                 }
-                else
-                    services->handleCommand(poll_fds[i].fd);
+                else {
+                    services->dealWithClient(ev.data.fd);
+                }
+            } else if (
+                (ev.events & (EPOLLHUP | EPOLLERR)) ||
+                (ev.events == 0)
+            )
+            {
+                std::cout << "[SERVER] Client disconnected or error on fd " << ev.data.fd << std::endl;
+                removeClient(ev.data.fd);
+            } else {
+                log("No relevant events, checking for sleepy clients");
+                // No relevant events means client is sleepy or timed out
+                services->dealWithSleepModeClient(ev.data.fd);
             }
         }
     }
@@ -390,4 +415,11 @@ void Server::removeChannel(const std::string& name)
 */
 void Server::log(const std::string &message) const {
     std::cout << "[SERVER] " << message << std::endl;
+}
+
+/*
+* Get the time difference in seconds from a given timestamp to now in seconds
+*/
+size_t Server::getDiffTime(size_t last_time) const {
+    return static_cast<size_t>(time(NULL) - last_time);
 }

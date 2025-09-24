@@ -13,10 +13,7 @@ int main(int ac, char**av) {
     try {
         Server server(port);
         server.setPassword(password);
-
         server.loop();
-
-
     } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
@@ -25,3 +22,4 @@ int main(int ac, char**av) {
     return 0;
 }
 
+    

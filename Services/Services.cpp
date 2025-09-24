@@ -182,13 +182,14 @@ bool Services::processCommandLine(Client &client, int client_fd, std::string &co
     if (existing_client == NULL) return false;
     server->dmClient(*existing_client, 421, command + " :Unknown command");
     existing_client->clearCommandStream();
+    existing_client->setLastActiveTime(time(NULL));
     return false;
 }
 
 /*
 * Handle incoming commands from clients
 */
-void Services::handleCommand(int client_fd)
+void Services::dealWithClient(int client_fd)
 {
     if (!server) {
         throw std::runtime_error("Server reference is null");
@@ -200,6 +201,8 @@ void Services::handleCommand(int client_fd)
         std::cerr << "[SERVICE] No client found for fd " << client_fd << std::endl;
         return;
     }
+
+
 
     std::string payload = cmd_shot(client_fd);
     std::stringstream &cmdStream = client->getCommandStream();
@@ -239,5 +242,35 @@ void Services::handleCommand(int client_fd)
         }
         
     }
+}
+
+/*
+* Handle sleepy clients
+*/
+void Services::dealWithSleepModeClient(int client_fd) {
+    std::cout << "[SERVICE] Handling sleepy client on fd " << client_fd << std::endl;
+
+
+    Client *client = server->getClient(client_fd);
+    if (!client) {
+        std::cerr << "[SERVICE] No client found for fd " << client_fd << std::endl;
+        return;
+    }
+
+    size_t last_action = server->getDiffTime(client->getLastActiveTime());
+
+    if (last_action > PING_INTERVAL) {
+        std::cout << "[SERVICE] Client " << client_fd << " notify PING" << std::endl;
+        server->dmClient(*client,  PING_INTERVAL, "PING :ircserv");
+        return;
+    }
+
+    if (last_action > CLIENT_TIMEOUT) {
+         std::cout << "[SERVICE] Client " << client_fd << " timed out" << std::endl;
+         server->dmClient(*client,  CLIENT_TIMEOUT, "ERROR :PING timeout:" + std::to_string(CLIENT_TIMEOUT) + " seconds");   
+         server->removeClient(client_fd);
+         return;
+    }
+
 }
 
