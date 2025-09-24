@@ -20,6 +20,7 @@ Services::Services(Server *srv) : server(srv)
     command_map["PRIVMSG"] = &Services::prvmsg;
     command_map["KICK"] = &Services::kick;
     command_map["INVITE"] = &Services::invite;
+    command_map["PING"] = &Services::ping;
 }
 
 
@@ -92,8 +93,15 @@ std::vector<std::string> split_params(const std::string &params) {
 std::string cmd_shot(int fd) {
     char buffer[512] = {0};
     int readed_bytes = read(fd, buffer, 512);
-    if (readed_bytes <= 0) {
-        return "";
+    if (readed_bytes < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            return "";
+        }
+        // Anything else is an error
+        throw std::runtime_error("Read error on fd " + str::to_string(fd) + ": " + strerror(errno));
+    } else if (readed_bytes == 0) {
+        // Connection closed by the client
+        throw std::runtime_error("Client disconnected on fd " + str::to_string(fd));
     }
     std::string msg(buffer, readed_bytes);
     return msg;
@@ -144,9 +152,10 @@ bool Services::processCommandLine(Client &client, int client_fd, std::string &co
 
     if (!client.isConnected()) return false;
 
-    server->log("Received command from fd " + std::to_string(client_fd) + ": " + command_line);
+    server->log("Received command from fd " + str::to_string(client_fd) + ": " + command_line);
 
     client.setLastActiveTime(time(NULL));
+    client.setIsPinged(false);
 
     std::vector<std::string> param_list = split_params(params);
     std::map<std::string, 
@@ -191,18 +200,29 @@ void Services::dealWithClient(int client_fd)
     }
 
     Client *client = server->getClient(client_fd);
-
     if (!client) {
-        server->log("No client found for fd " + std::to_string(client_fd));
+        server->log("No client found for fd " + str::to_string(client_fd));
+        server->addToDeleteQueue(*client);
         return;
     }
 
+    std::string payload;
 
+    try {
+        payload = cmd_shot(client_fd);
+    } catch (const std::exception &e) {
+        server->log("Error reading from client fd " + str::to_string(client_fd) + ": " + e.what());
+        server->addToDeleteQueue(*client);
+        return;
+    }
 
-    std::string payload = cmd_shot(client_fd);
+    if (payload.empty()) {
+        return;
+    }
+
     std::stringstream &cmdStream = client->getCommandStream();
     
-    if (!payload.empty() && payload.back() != '\n')
+    if (!payload.empty() && payload[payload.size() - 1] != '\n')
     {
         cmdStream << payload;
 
@@ -226,16 +246,9 @@ void Services::dealWithClient(int client_fd)
     }
 
     for (size_t i = 0; i < commands.size(); ++i) {
-        client = server->getClient(client_fd);
-        if (!client) {
-            server->log("[SERVICE] No client found for fd " + std::to_string(client_fd));
-            return;
-        }
-
         if (processCommandLine(*client, client_fd, commands[i]) == false) {
-            break;
-        }
-        
+            return ;
+        }    
     }
 }
 
@@ -247,29 +260,27 @@ void Services::dealWithClient(int client_fd)
 * - CLIENT_TIMEOUT: if exceeded, the client is disconnected due to inactivity
 */
 void Services::dealWithSleepModeClient(int client_fd) {
-    server->log("Handling sleepy client on fd " + std::to_string(client_fd));
-
 
     Client *client = server->getClient(client_fd);
     if (!client) {
-        server->log("No client found for fd " + std::to_string(client_fd));
+        server->log("No client found for fd " + str::to_string(client_fd));
         return;
     }
 
     size_t last_action = server->getDiffTime(client->getLastActiveTime());
 
-    if (last_action > PING_INTERVAL) {
-        server->log("Client " + std::to_string(client_fd) + " notify PING");
+    if (last_action >= CLIENT_TIMEOUT) {
+        server->log("Client " + str::to_string(client_fd) + " timed out");
+        server->dmClient(*client,  CLIENT_TIMEOUT, "ERROR :PING timeout:" + str::to_string(CLIENT_TIMEOUT) + " seconds");
+        server->addToDeleteQueue(*client);
+        return;
+    }
+
+    if (last_action >= PING_INTERVAL && !client->isPinged()) {
+        server->log("Client " + str::to_string(client_fd) + " notify PING");
         server->dmClient(*client,  PING_INTERVAL, "PING :ircserv");
+        client->setIsPinged(true);
         return;
     }
-
-    if (last_action > CLIENT_TIMEOUT) {
-        server->log("Client " + std::to_string(client_fd) + " timed out");
-        server->dmClient(*client,  CLIENT_TIMEOUT, "ERROR :PING timeout:" + std::to_string(CLIENT_TIMEOUT) + " seconds");
-        server->removeClient(client_fd);
-        return;
-    }
-
 }
 

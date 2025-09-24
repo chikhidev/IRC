@@ -19,6 +19,7 @@ class Client {
     bool _isRegistered;
     bool _sent_first_command;
     std::string command_terminators;
+    bool is_pinged;
     std::vector<std::string> joined_channels;
     std::stringstream command_buffer;
     int last_active_time;
@@ -67,6 +68,9 @@ public:
 
     size_t getLastActiveTime() const;
     void setLastActiveTime(size_t);
+
+    bool isPinged() const;
+    void setIsPinged(bool);
 };
 
 

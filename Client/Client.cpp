@@ -15,16 +15,14 @@ Client::Client(int socket_fd, sockaddr_in address, socklen_t length, Server* srv
     _sent_first_command = false;
     server = srv;
     last_active_time = time(NULL);
+    is_pinged = false;
 }
 
 /*
 * Destructor
 */
 Client::~Client() {
-    server->log("Client " + std::to_string(fd) + " destroyed.");
-    if (!nickname.empty() && server) {
-        server->removeUniqueNick(nickname);
-    }
+    server->log("Client " + str::to_string(fd) + " destroyed.");
 }
 
 /*
@@ -260,17 +258,18 @@ void Client::quitAllChannels() {
 
     size_t channel_count = joined_channels.size();
 
-    server->log("Client " + std::to_string(fd) + " is quitting all channels (" + std::to_string(channel_count) + ").");
+    server->log("Client " + str::to_string(fd) + " is quitting all channels (" + str::to_string(channel_count) + ").");
 
     if (channel_count == 0) {
         return;
     }
 
-    for (size_t i = channel_count - 1; i >= 0; --i) {
-        server->log("[CLIENT] Client " + std::to_string(fd) + " quitting channel " + joined_channels[i]);
+    for (size_t i = channel_count - 1; ; i--) {
+        server->log("[CLIENT] Client " + str::to_string(fd) + " quitting channel " + joined_channels[i]);
 
         Channel* channel = server->getChannel(joined_channels[i]);
         if (!channel) {
+            if (i == 0) break;
             continue;
         }
 
@@ -279,9 +278,11 @@ void Client::quitAllChannels() {
             channel->broadcastToMembers(*this, quit_message);
             channel->removeMember(*this);
         }
+
+        if (i == 0) break;
     }
 
-    server->log("Client " + std::to_string(fd) + " has quit all channels.");
+    server->log("Client " + str::to_string(fd) + " has quit all channels.");
     joined_channels.clear();
 }
 
@@ -318,3 +319,14 @@ size_t Client::getLastActiveTime() const {
 void Client::setLastActiveTime(size_t time) {
     last_active_time = time;
 }
+
+
+
+bool Client::isPinged() const {
+    return is_pinged;
+}
+
+void Client::setIsPinged(bool state) {
+    is_pinged = state;
+}
+
