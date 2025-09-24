@@ -144,7 +144,9 @@ bool Services::processCommandLine(Client &client, int client_fd, std::string &co
 
     if (!client.isConnected()) return false;
 
-    std::cout << "[SERVICE] Received command from fd " << client_fd << ": " << command_line << std::endl;
+    server->log("Received command from fd " + std::to_string(client_fd) + ": " + command_line);
+
+    client.setLastActiveTime(time(NULL));
 
     std::vector<std::string> param_list = split_params(params);
     std::map<std::string, 
@@ -159,7 +161,7 @@ bool Services::processCommandLine(Client &client, int client_fd, std::string &co
         try {
             (this->*(it->second))(client, param_list);
         } catch (const std::exception &e) {
-            std::cerr << "[ERROR] Exception while processing command " << command << ": " << e.what() << std::endl;
+            server->log("Exception while processing command " + command + ": " + e.what());
         }
 
         Client* existing_client = server->getClient(client_fd);
@@ -169,12 +171,11 @@ bool Services::processCommandLine(Client &client, int client_fd, std::string &co
         return true;
     }
 
-    std::cout << "[SERVICE] Unknown command: " << command << std::endl;
+    server->log("Unknown command: " + command);
     Client* existing_client = server->getClient(client_fd);
     if (existing_client == NULL) return false;
     server->dmClient(*existing_client, 421, command + " :Unknown command");
     existing_client->clearCommandStream();
-    existing_client->setLastActiveTime(time(NULL));
     return false;
 }
 
@@ -192,7 +193,7 @@ void Services::dealWithClient(int client_fd)
     Client *client = server->getClient(client_fd);
 
     if (!client) {
-        std::cerr << "[SERVICE] No client found for fd " << client_fd << std::endl;
+        server->log("No client found for fd " + std::to_string(client_fd));
         return;
     }
 
@@ -227,7 +228,7 @@ void Services::dealWithClient(int client_fd)
     for (size_t i = 0; i < commands.size(); ++i) {
         client = server->getClient(client_fd);
         if (!client) {
-            std::cerr << "[SERVICE] No client found for fd " << client_fd << "" << std::endl;
+            server->log("[SERVICE] No client found for fd " + std::to_string(client_fd));
             return;
         }
 
@@ -246,28 +247,28 @@ void Services::dealWithClient(int client_fd)
 * - CLIENT_TIMEOUT: if exceeded, the client is disconnected due to inactivity
 */
 void Services::dealWithSleepModeClient(int client_fd) {
-    std::cout << "[SERVICE] Handling sleepy client on fd " << client_fd << std::endl;
+    server->log("Handling sleepy client on fd " + std::to_string(client_fd));
 
 
     Client *client = server->getClient(client_fd);
     if (!client) {
-        std::cerr << "[SERVICE] No client found for fd " << client_fd << std::endl;
+        server->log("No client found for fd " + std::to_string(client_fd));
         return;
     }
 
     size_t last_action = server->getDiffTime(client->getLastActiveTime());
 
     if (last_action > PING_INTERVAL) {
-        std::cout << "[SERVICE] Client " << client_fd << " notify PING" << std::endl;
+        server->log("Client " + std::to_string(client_fd) + " notify PING");
         server->dmClient(*client,  PING_INTERVAL, "PING :ircserv");
         return;
     }
 
     if (last_action > CLIENT_TIMEOUT) {
-         std::cout << "[SERVICE] Client " << client_fd << " timed out" << std::endl;
-         server->dmClient(*client,  CLIENT_TIMEOUT, "ERROR :PING timeout:" + std::to_string(CLIENT_TIMEOUT) + " seconds");   
-         server->removeClient(client_fd);
-         return;
+        server->log("Client " + std::to_string(client_fd) + " timed out");
+        server->dmClient(*client,  CLIENT_TIMEOUT, "ERROR :PING timeout:" + std::to_string(CLIENT_TIMEOUT) + " seconds");
+        server->removeClient(client_fd);
+        return;
     }
 
 }

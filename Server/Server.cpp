@@ -163,17 +163,17 @@ void Server::removeEpollFd(int fd_to_remove)
 */
 void Server::removeClient(int client_fd)
 {
-    std::cout << "[SERVER] Removing client: " << client_fd << std::endl;
+    log("Removing client: " + std::to_string(client_fd));
 
     // Check the clients map
     std::map<int, Client*>::iterator it = clients.find(client_fd);
     if (it != clients.end())
     {
-        std::cout << "[SERVER] Found client " << client_fd << ", proceeding to disconnect." << std::endl;
+        log("Found client " + std::to_string(client_fd) + ", proceeding to disconnect.");
 
         Client* existing_client = getClient(client_fd);
         if (existing_client) {
-            std::cout << "[SERVER] Found client instance, disconnecting." << std::endl;
+            log("Found client instance, disconnecting.");
 
             existing_client->disconnect();
             existing_client->quitAllChannels();
@@ -184,20 +184,20 @@ void Server::removeClient(int client_fd)
 
             delete existing_client;
 
-            std::cout << "[SERVER] Client " << client_fd << " disconnected and removed." << std::endl;
+            log("Client " + std::to_string(client_fd) + " disconnected and removed.");
         }
         
         clients.erase(it);
-        std::cout << "[SERVER] Client " << client_fd << " erased from clients map." << std::endl;
+        log("Client " + std::to_string(client_fd) + " erased from clients map.");
         removeEpollFd(client_fd);
-        std::cout << "[SERVER] Client " << client_fd << " removed from epoll set." << std::endl;
+        log("Client " + std::to_string(client_fd) + " removed from epoll set.");
         close(client_fd);
-        std::cout << "[SERVER] Client " << client_fd << " socket closed." << std::endl;
+        log("Client " + std::to_string(client_fd) + " socket closed.");
 
         event_count--;
 
     } else {
-        std::cout << "[SERVER] Client " << client_fd << " not found in clients map." << std::endl;
+        log("Client " + std::to_string(client_fd) + " not found in clients map.");
     }
 }
 
@@ -230,7 +230,7 @@ void Server::createClient()
     int new_socket = accept(fd, (struct sockaddr *)&client_addr, &addr_len);
     if (new_socket < 0)
     {
-        std::cerr << "Accept failed" << std::endl;
+        log("Accept failed");
         return;
     }
 
@@ -238,7 +238,7 @@ void Server::createClient()
     makeNonBlocking(new_socket);
     addEpollFd(new_socket);
 
-    std::cout << "[SERVER] Client connected: " << new_socket << std::endl;
+    log("Client connected: " + std::to_string(new_socket));
 }
 
 
@@ -279,10 +279,11 @@ Client* Server::getClientByNick(const std::string &nick)
 * - Reads data from clients
 * - Handles client disconnections
 * - Delegates command processing to the Services class
+* - Handles sleepy clients (new)
 */
 void Server::loop()
 {
-    std::cout << "[SERVER] Server started on port " << port << std::endl;
+    log("Server started on port " + std::to_string(port));
 
     while (true)
     {
@@ -297,11 +298,11 @@ void Server::loop()
                 if (ev.data.fd == fd)
                 {
                     if (event_count >= MAX_CONNECTIONS) {
-                        std::cerr << "[SERVER] Maximum connections reached, rejecting new connection." << std::endl;
+                        log("Maximum connections reached, rejecting new connection.");
                         continue;
                     }
 
-                    std::cout << "[SERVER] New connection on server socket" << std::endl;
+                    log("[SERVER] New connection on server socket");
                     createClient();
                 }
                 else {
@@ -312,11 +313,10 @@ void Server::loop()
                 (ev.events == 0)
             )
             {
-                std::cout << "[SERVER] Client disconnected or error on fd " << ev.data.fd << std::endl;
+                log("Client disconnected or error on fd " + std::to_string(ev.data.fd));
                 removeClient(ev.data.fd);
             } else {
                 log("No relevant events, checking for sleepy clients");
-                // No relevant events means client is sleepy or timed out
                 services->dealWithSleepModeClient(ev.data.fd);
             }
         }
@@ -337,7 +337,7 @@ void Server::sendToAllClients(const std::string &message)
         int client_fd = it->first;
         if (send(client_fd, prefixed_message.c_str(), prefixed_message.length(), 0) < 0)
         {
-            std::cerr << "[SERVER] Failed to send message to fd " << client_fd << std::endl;
+            log("Failed to send message to fd " + std::to_string(client_fd));
         }
     }
 }
@@ -364,8 +364,7 @@ void Server::dmClient(Client& client, int code, const std::string &message) {
 */
 void Server::sendMessage(Client& client, const std::string& message) {
     if (send(client.getFd(), message.c_str(), message.size(), 0) < 0) {
-        std::cerr << "[SERVER] Failed to send message to fd "
-                  << fd << std::endl;
+        log("Failed to send message to fd " + std::to_string(client.getFd()));
     }
 }
 /*--------------------------------------------------------------*/

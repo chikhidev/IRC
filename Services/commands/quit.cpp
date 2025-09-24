@@ -16,7 +16,7 @@ void Services::quit(Client &client, std::vector<std::string> &params) {
     }
 
     server->dmClient(client, 221, "Goodbye! " + quit_message);
-    std::cout << "[SERVICE] Client with fd " << client.getFd() << " has quit." << std::endl;
+    server->log("Client with fd " + std::to_string(client.getFd()) + " has quit. " + (quit_message.empty() ? "" : "Message: " + quit_message));
 
     server->removeClient(client);
 }

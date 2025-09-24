@@ -2,12 +2,6 @@
 #include "../Client/Client.hpp"
 #include "../Server/Server.hpp"
 
-Channel::Channel() : name(""), server(NULL) {
-    std::cout << "Default Channel constructor called" << std::endl;
-    initModes();
-    user_limit = 10;
-}
-
 Channel::Channel(const std::string &channel_name, Client &creator, Server *srv) : server(srv) { 
     name = channel_name;
     operators[creator.getNick()] = &creator;
@@ -133,7 +127,7 @@ void Channel::listMembers(Client &client) const {
         throw std::runtime_error("Server reference is null");
     }
 
-    std::cout << "Members of channel " << name << ":" << std::endl;
+    server->log("Members of channel " + name + ":");
 
     std::string response = name + " :";
 

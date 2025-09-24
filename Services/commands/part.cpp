@@ -57,7 +57,7 @@ void Services::part(Client &client, std::vector<std::string> &params) {
         _channel->removeMember(client);
 
         if (_channel->isEmpty()) {
-            std::cout << "[CHANNEL " << channel_name << "] Channel " << channel_name << " is empty. Removing it from server." << std::endl;
+            server->log("Channel " + channel_name + " is empty. Removing it from server.");
             server->removeChannel(channel_name);
         }
 

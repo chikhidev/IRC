@@ -21,10 +21,10 @@ Client::Client(int socket_fd, sockaddr_in address, socklen_t length, Server* srv
 * Destructor
 */
 Client::~Client() {
+    server->log("Client " + std::to_string(fd) + " destroyed.");
     if (!nickname.empty() && server) {
         server->removeUniqueNick(nickname);
     }
-    std::cout << "[CLIENT] Client " << fd << " destroyed." << std::endl;
 }
 
 /*
@@ -260,7 +260,7 @@ void Client::quitAllChannels() {
 
     size_t channel_count = joined_channels.size();
 
-    std::cout << "[CLIENT] Client " << fd << " is quitting all channels (" << channel_count << ")." << std::endl;
+    server->log("Client " + std::to_string(fd) + " is quitting all channels (" + std::to_string(channel_count) + ").");
 
     if (channel_count == 0) {
         return;
@@ -281,8 +281,7 @@ void Client::quitAllChannels() {
         }
     }
 
-    // before SEGV
-    std::cout << "[CLIENT] Client " << fd << " has quit all channels." << std::endl;
+    server->log("Client " + std::to_string(fd) + " has quit all channels.");
     joined_channels.clear();
 }
 
