@@ -27,6 +27,16 @@ public:
     bool isAuth(Client&, std::string&);
     bool isRegistered(Client&, std::string&);
 
+
+    /*
+        * IRC COMMANDS
+        * As you may notice, all commands take a Client reference and a vector of strings as parameters
+        * The Client reference represents the client who sent the command
+        * The vector of strings contains the command and its parameters, split by spaces
+        * For example, if a client sends "NICK myNick", the vector will contain ["NICK", "myNick"]
+        * This design allows for easy extension and handling of new commands
+    */
+
     void pass(Client&, std::vector<std::string>&);
     void nick(Client&, std::vector<std::string>&);
     void user(Client&, std::vector<std::string>&);
@@ -40,7 +50,7 @@ public:
     void invite(Client&, std::vector<std::string>&);
     void ping(Client&, std::vector<std::string>&);
 
-    void mode(Client&, std::vector<std::string>&);
+    void mode(Client&, std::vector<std::string>&); // MODE command handler, with sub-handlers
         void handlePass(Channel&, Client&, std::vector<std::string>&);
         void handleMembersLimit(Channel&, Client&, std::vector<std::string>&);
         void handleOperator(Channel&, Client&, std::vector<std::string>&);
