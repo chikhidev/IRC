@@ -98,10 +98,10 @@ std::string cmd_shot(int fd) {
             return "";
         }
         // Anything else is an error
-        throw std::runtime_error("Read error on fd " + str::to_string(fd) + ": " + strerror(errno));
+        throw std::runtime_error("Read error on fd " + glob::to_string(fd) + ": " + strerror(errno));
     } else if (readed_bytes == 0) {
         // Connection closed by the client
-        throw std::runtime_error("Client disconnected on fd " + str::to_string(fd));
+        throw std::runtime_error("Client disconnected on fd " + glob::to_string(fd));
     }
     std::string msg(buffer, readed_bytes);
     return msg;
@@ -152,7 +152,7 @@ bool Services::processCommandLine(Client &client, int client_fd, std::string &co
 
     if (!client.isConnected()) return false;
 
-    server->log("Received command from fd " + str::to_string(client_fd) + ": " + command_line);
+    server->log("Received command from fd " + glob::to_string(client_fd) + ": " + command_line);
 
     client.setLastActiveTime(time(NULL));
     client.setIsPinged(false);
@@ -201,7 +201,7 @@ void Services::dealWithClient(int client_fd)
 
     Client *client = server->getClient(client_fd);
     if (!client) {
-        server->log("No client found for fd " + str::to_string(client_fd));
+        server->log("No client found for fd " + glob::to_string(client_fd));
         server->addToDeleteQueue(*client);
         return;
     }
@@ -211,7 +211,7 @@ void Services::dealWithClient(int client_fd)
     try {
         payload = cmd_shot(client_fd);
     } catch (const std::exception &e) {
-        server->log("Error reading from client fd " + str::to_string(client_fd) + ": " + e.what());
+        server->log("Error reading from client fd " + glob::to_string(client_fd) + ": " + e.what());
         server->addToDeleteQueue(*client);
         return;
     }
@@ -263,21 +263,21 @@ void Services::dealWithSleepModeClient(int client_fd) {
 
     Client *client = server->getClient(client_fd);
     if (!client) {
-        server->log("No client found for fd " + str::to_string(client_fd));
+        server->log("No client found for fd " + glob::to_string(client_fd));
         return;
     }
 
     size_t last_action = server->getDiffTime(client->getLastActiveTime());
 
     if (last_action >= CLIENT_TIMEOUT) {
-        server->log("Client " + str::to_string(client_fd) + " timed out");
-        server->dmClient(*client,  CLIENT_TIMEOUT, "ERROR :PING timeout:" + str::to_string(CLIENT_TIMEOUT) + " seconds");
+        server->log("Client " + glob::to_string(client_fd) + " timed out");
+        server->dmClient(*client,  CLIENT_TIMEOUT, "ERROR :PING timeout:" + glob::to_string(CLIENT_TIMEOUT) + " seconds");
         server->addToDeleteQueue(*client);
         return;
     }
 
     if (last_action >= PING_INTERVAL && !client->isPinged()) {
-        server->log("Client " + str::to_string(client_fd) + " notify PING");
+        server->log("Client " + glob::to_string(client_fd) + " notify PING");
         server->dmClient(*client,  PING_INTERVAL, "PING :ircserv");
         client->setIsPinged(true);
         return;

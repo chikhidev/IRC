@@ -15,11 +15,13 @@ SERVICES_COMMANDS=\
 	Services/commands/prvmsg.cpp \
 	Services/commands/kick.cpp \
 	Services/commands/invite.cpp \
+	Services/commands/ping.cpp \
 
 SRC=Server/Server.cpp \
 	Services/Services.cpp \
 	Client/Client.cpp \
 	Channel/Channel.cpp \
+	shared/glob.cpp \
 	main.cpp
 
 SRC += $(SERVICES_COMMANDS)

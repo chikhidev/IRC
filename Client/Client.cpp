@@ -22,7 +22,7 @@ Client::Client(int socket_fd, sockaddr_in address, socklen_t length, Server* srv
 * Destructor
 */
 Client::~Client() {
-    server->log("Client " + str::to_string(fd) + " destroyed.");
+    server->log("Client " + glob::to_string(fd) + " destroyed.");
 }
 
 /*
@@ -258,14 +258,14 @@ void Client::quitAllChannels() {
 
     size_t channel_count = joined_channels.size();
 
-    server->log("Client " + str::to_string(fd) + " is quitting all channels (" + str::to_string(channel_count) + ").");
+    server->log("Client " + glob::to_string(fd) + " is quitting all channels (" + glob::to_string(channel_count) + ").");
 
     if (channel_count == 0) {
         return;
     }
 
     for (size_t i = channel_count - 1; ; i--) {
-        server->log("[CLIENT] Client " + str::to_string(fd) + " quitting channel " + joined_channels[i]);
+        server->log("[CLIENT] Client " + glob::to_string(fd) + " quitting channel " + joined_channels[i]);
 
         Channel* channel = server->getChannel(joined_channels[i]);
         if (!channel) {
@@ -282,7 +282,7 @@ void Client::quitAllChannels() {
         if (i == 0) break;
     }
 
-    server->log("Client " + str::to_string(fd) + " has quit all channels.");
+    server->log("Client " + glob::to_string(fd) + " has quit all channels.");
     joined_channels.clear();
 }
 

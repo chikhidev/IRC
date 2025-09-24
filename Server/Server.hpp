@@ -12,6 +12,7 @@ class Server {
     std::string password;
     int fd;
     sockaddr_in addr;
+    bool *running;
 
     int epoll_fd;
     struct epoll_event event;
@@ -68,6 +69,8 @@ public:
     void log(const std::string &message) const;
 
     size_t getDiffTime(size_t) const;
+
+    void stop(int);
 };
 
 

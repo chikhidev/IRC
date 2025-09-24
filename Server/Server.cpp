@@ -55,8 +55,10 @@ Server::Server(int p)
         throw std::runtime_error("Epoll ctl failed");
     }
 
-    // Since the server socket is the only one in the set initially
     event_count = 1;
+    *glob::server_running() = true;
+    signal(SIGINT, glob::stop_running);
+    signal(SIGTERM, glob::stop_running);
 
     services = new Services(this);
     
@@ -89,6 +91,16 @@ Server::~Server()
     delete services;
 }
 
+
+/*
+* Stops the server
+*/
+void Server::stop(int signal) {
+    *glob::server_running() = false;
+    log("Server stoped with signal: " + glob::to_string(signal));
+}
+
+
 /*
 * Force add non-blocking mode to a given file descriptor
 */
@@ -118,6 +130,7 @@ sockaddr_in Server::getAddr() const
 {
     return addr;
 }
+
 
 /*
 * Set the server password
@@ -155,19 +168,20 @@ void Server::removeEpollFd(int fd_to_remove)
     }
 }
 
+
 /*
 * Remove a client from the server
 */
 void Server::removeClient(Client &client)
 {
     int client_fd = client.getFd();
-    log("Removing client: " + str::to_string(client_fd));
+    log("Removing client: " + glob::to_string(client_fd));
 
     // Check the clients map
     std::map<int, Client*>::iterator it = clients.find(client_fd);
     if (it != clients.end())
     {
-        log("Found client " + str::to_string(client_fd) + ", proceeding to disconnect.");
+        log("Found client " + glob::to_string(client_fd) + ", proceeding to disconnect.");
 
         Client* existing_client = getClient(client_fd);
         if (existing_client) {
@@ -182,31 +196,34 @@ void Server::removeClient(Client &client)
 
             delete existing_client;
 
-            log("Client " + str::to_string(client_fd) + " disconnected and removed.");
+            log("Client " + glob::to_string(client_fd) + " disconnected and removed.");
         }
         
         clients.erase(it);
-        log("Client " + str::to_string(client_fd) + " erased from clients map.");
+        log("Client " + glob::to_string(client_fd) + " erased from clients map.");
         removeEpollFd(client_fd);
-        log("Client " + str::to_string(client_fd) + " removed from epoll set.");
+        log("Client " + glob::to_string(client_fd) + " removed from epoll set.");
         close(client_fd);
-        log("Client " + str::to_string(client_fd) + " socket closed.");
+        log("Client " + glob::to_string(client_fd) + " socket closed.");
 
         event_count--;
 
     } else {
-        log("Client " + str::to_string(client_fd) + " not found in clients map.");
+        log("Client " + glob::to_string(client_fd) + " not found in clients map.");
     }
 }
+
 
 /*
 * Add a client to the deletion queue
 * This is to safely remove clients inside the main loop without invalidating iterators
 */
 void Server::addToDeleteQueue(Client &client) {
-    log("Queueing client " + str::to_string(client.getFd()) + " for deletion.");
+    log("Queueing client " + glob::to_string(client.getFd()) + " for deletion.");
     clients_to_delete.push(client.getFd());
 }
+
+
 
 void Server::addToDeleteQueue(int client_fd) {
     clients_to_delete.push(client_fd);
@@ -219,7 +236,7 @@ void Server::addToDeleteQueue(int client_fd) {
 void Server::processDeletionQueue() {
     while (!clients_to_delete.empty()) {
         int client_fd = clients_to_delete.front();
-        log("Processing deletion for client " + str::to_string(client_fd));
+        log("Processing deletion for client " + glob::to_string(client_fd));
 
         Client* client = getClient(client_fd);
         if (client) {
@@ -237,11 +254,15 @@ void Server::addUniqueNick(const std::string &nick, Client &client) {
     unique_nicks[nick] = &client;
 }
 
+
+
 /* Remove a unique nickname from the map
 */
 void Server::removeUniqueNick(const std::string &nick) {
     unique_nicks.erase(nick);
 }
+
+
 
 /*
 * Create a new client and add it to the clients map
@@ -262,7 +283,7 @@ void Server::createClient()
     makeNonBlocking(new_socket);
     addEpollFd(new_socket);
 
-    log("Client connected: " + str::to_string(new_socket));
+    log("Client connected: " + glob::to_string(new_socket));
 }
 
 
@@ -287,6 +308,8 @@ Client* Server::getClient(int fd)
     return it->second; 
 }
 
+
+
 Client* Server::getClientByNick(const std::string &nick)
 {
     std::map<std::string, Client*>::iterator it = unique_nicks.find(nick);
@@ -295,6 +318,8 @@ Client* Server::getClientByNick(const std::string &nick)
     }
     return it->second;
 }
+
+
 
 /*
 * Main server loop:
@@ -307,9 +332,9 @@ Client* Server::getClientByNick(const std::string &nick)
 */
 void Server::loop()
 {
-    log("Server started on port " + str::to_string(port));
+    log("Server started on port " + glob::to_string(port));
 
-    while (true)
+    while (*glob::server_running())
     {
         processDeletionQueue();
         int n = epoll_wait(epoll_fd, events, MAX_CONNECTIONS, EPOLL_TIMEOUT);
@@ -341,11 +366,13 @@ void Server::loop()
                     services->dealWithClient(ev.data.fd);
                 }
             } else if (ev.events & (EPOLLHUP | EPOLLERR)) {
-                log("Client disconnected or error on fd " + str::to_string(ev.data.fd));
+                log("Client disconnected or error on fd " + glob::to_string(ev.data.fd));
                 addToDeleteQueue(ev.data.fd);
             }
         }
     }
+    
+    log("Server stopped");
 }
 
 
@@ -362,10 +389,12 @@ void Server::sendToAllClients(const std::string &message)
         int client_fd = it->first;
         if (send(client_fd, prefixed_message.c_str(), prefixed_message.length(), 0) < 0)
         {
-            log("Failed to send message to fd " + str::to_string(client_fd));
+            log("Failed to send message to fd " + glob::to_string(client_fd));
         }
     }
 }
+
+
 
 /*
 * Send a direct message to a specific client, perspective of ircserv
@@ -375,7 +404,7 @@ void Server::dmClient(Client& client, int code, const std::string &message) {
     std::string response = ":ircserv ";
 
     response += (code < 10 ? "00" : (code < 100 ? "0" : "")) +
-                           str::to_string(code) + " ";
+                           glob::to_string(code) + " ";
 
     response += (client.hasNick() ? client.getNick() : "*");
 
@@ -389,7 +418,7 @@ void Server::dmClient(Client& client, int code, const std::string &message) {
 */
 void Server::sendMessage(Client& client, const std::string& message) {
     if (send(client.getFd(), message.c_str(), message.size(), 0) < 0) {
-        log("Failed to send message to fd " + str::to_string(client.getFd()));
+        log("Failed to send message to fd " + glob::to_string(client.getFd()));
     }
 }
 /*--------------------------------------------------------------*/

@@ -19,12 +19,6 @@
 *   Due to any error the program will throw an exception and exit
 */
 
-std::string str::to_string(int number) {
-    std::stringstream ss;
-    ss << number;
-    return ss.str();
-}
-
 int main(int ac, char**av) {
 
     if (ac != 3) {
@@ -38,6 +32,7 @@ int main(int ac, char**av) {
     try {
         Server server(port);
         server.setPassword(password);
+
         server.loop();
     } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << std::endl;
