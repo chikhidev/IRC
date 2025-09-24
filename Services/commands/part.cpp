@@ -48,12 +48,6 @@ void Services::part(Client &client, std::vector<std::string> &params) {
 
         _channel->broadcastToMembers(client, "PART :" + channel_name + (reason.empty() ? "" : " " + reason));
 
-        if (_channel->isOperator(client) && _channel->getOperatorsCount() == 1) {
-            _channel->broadcastToMembers(client, "NOTICE " + _channel->getName() + " :The channel operator has left the channel, the channel will be removed.");
-            server->removeChannel(_channel->getName());
-            return;
-        }
-
         _channel->removeMember(client);
 
         if (_channel->isEmpty()) {
