@@ -1,0 +1,381 @@
+Code is poetry.
+The best code is no code at all.
+Any fool can write code that a computer can understand. Good programmers write code that humans can understand.
+First, solve the problem. Then, write the code.
+Code never lies, comments sometimes do.
+Programming isn't about what you know; it's about what you can figure out.
+The most important property of a program is whether it accomplishes the intention of its user.
+Good code is its own best documentation.
+Debugging is twice as hard as writing the code in the first place.
+Programs must be written for people to read, and only incidentally for machines to execute.
+The computer was born to solve problems that did not exist before.
+Programming is the art of telling another human what one wants the computer to do.
+Code is like humor. When you have to explain it, it's bad.
+Walking on water and developing software from a specification are easy if both are frozen.
+There are only two hard things in Computer Science: cache invalidation and naming things.
+It's not a bug – it's an undocumented feature.
+A good programmer is someone who always looks both ways before crossing a one-way street.
+Measuring programming progress by lines of code is like measuring aircraft building progress by weight.
+Give someone a program, you frustrate them for a day; teach them how to program, you frustrate them for a lifetime.
+Programming is like sex. One mistake and you have to support it for the rest of your life.
+Talk is cheap. Show me the code.
+The trouble with programmers is that you can never tell what a programmer is doing until it's too late.
+Software is like entropy: It is difficult to grasp, weighs nothing, and obeys the Second Law of Thermodynamics.
+The best thing about a boolean is even if you are wrong, you are only off by a bit.
+There are two ways to write error-free programs; only the third works.
+Programming today is a race between software engineers striving to build bigger and better idiot-proof programs, and the universe trying to build bigger and better idiots.
+Always code as if the guy who ends up maintaining your code will be a violent psychopath who knows where you live.
+Any code of your own that you haven't looked at for six or more months might as well have been written by someone else.
+Software and cathedrals are much the same — first we build them, then we pray.
+The most likely way for the world to be destroyed, most experts agree, is by accident. That's where we come in; we're computer professionals. We cause accidents.
+Copying and pasting is a design error.
+If debugging is the process of removing bugs, then programming must be the process of putting them in.
+99 little bugs in the code, 99 little bugs. Take one down, patch it around, 117 little bugs in the code.
+Programming is 10% science, 20% ingenuity, and 70% getting the ingenuity to work with the science.
+It works on my machine.
+Real programmers don't comment their code. If it was hard to write, it should be hard to understand.
+The best method for accelerating a computer is the one that boosts it by 9.8 m/s².
+I'm not a great programmer; I'm just a good programmer with great habits.
+Code is never finished, only abandoned.
+A language that doesn't affect the way you think about programming is not worth knowing.
+Simplicity is the ultimate sophistication.
+Make it work, make it right, make it fast.
+Premature optimization is the root of all evil.
+Code review is like looking at yourself in the mirror after a few drinks – you see the flaws, but you're not sure if you can fix them right now.
+Programming is the closest thing we have to magic.
+Every great developer you know got there by solving problems they were unqualified to solve until they actually did it.
+The only way to learn a new programming language is by writing programs in it.
+Deleted code is debugged code.
+Programming is not a science. Programming is a craft.
+The computer is incredibly fast, accurate, and stupid. Man is incredibly slow, inaccurate, and brilliant.
+Code is read much more often than it is written.
+If you can't explain it simply, you don't understand it well enough.
+The function of good software is to make the complex appear to be simple.
+Don't comment bad code—rewrite it.
+Programming is thinking, not typing.
+There is no programming language, no matter how structured, that will prevent programmers from making bad programs.
+Quality is never an accident; it is always the result of intelligent effort.
+Weeks of coding can save you hours of planning.
+It's better to wait for a productive programmer to become available than it is to wait for the first available programmer to become productive.
+Good programmers use their brains, but good guidelines save us having to think out every case.
+Code without tests is broken by design.
+The sooner you start to code, the longer the program will take.
+Programming is a skill best acquired by practice and example rather than from books.
+One of my most productive days was throwing away 1000 lines of code.
+Software engineering is programming integrated over time.
+The bearing of a child takes nine months, no matter how many women are assigned.
+Adding manpower to a late software project makes it later.
+There's nothing more permanent than a temporary hack.
+Software is a great combination between artistry and engineering.
+The first 90% of the code accounts for the first 90% of the development time. The remaining 10% of the code accounts for the other 90% of the development time.
+A programmer is ideally an essayist who works with traditional aesthetic and literary forms.
+Programming is breaking of one big impossible task into several very small possible tasks.
+Software comes from heaven when you have good design.
+Code is the closest thing we have to a universal language.
+Every piece of software written today is likely going to infringe on someone else's patent.
+Before software can be reusable it first has to be usable.
+Systems run the business and the business changes faster than the systems.
+Good code is short, simple, and symmetrical – the challenge is figuring out how to get there.
+The best programs are written so that computing machines can perform them quickly and so that human beings can understand them clearly.
+Programming is learned by writing programs.
+Software engineering is that part of computer science which is too difficult for the computer scientist.
+The value of a prototype is in the education it gives you, not in the code itself.
+When debugging, novices insert corrective code; experts remove defective code.
+Controlling complexity is the essence of computer programming.
+The best programmers are not marginally better than merely good ones. They are an order-of-magnitude better.
+There is nothing quite so useless as doing with great efficiency something that should not be done at all.
+Programming is the process of taking a perfectly good solution and making it work on a computer.
+The purpose of software engineering is to control complexity, not to create it.
+Good judgment comes from experience, and experience comes from bad judgment.
+It should be noted that no ethically-trained software engineer would ever consent to write a DestroyBaghdad procedure.
+The difference between theory and practice is that in theory, there is no difference between theory and practice.
+If you don't like testing your product, most likely your customers won't like to test it either.
+Code should be written to minimize the time it would take for someone else to understand it.
+The cheapest, fastest, and most reliable components are those that aren't there.
+Perfect is the enemy of good.
+Testing shows the presence, not the absence of bugs.
+Low-level programming is good for the programmer's soul.
+Standards are always out of date. That's what makes them standards.
+Programming is the art of doing one thing at a time.
+Code is like a joke. If you have to explain it, it's probably not that good.
+The computer is a moron.
+There's an old saying in Tennessee — I know t's in Texas, probably in Tennessee — that says, fool me once, shame on — shame on you. Fool me — you can't get fooled again. But you can definitely get null pointer exceptions again.
+Programs are meant to be read by humans and only incidentally for computers to execute.
+Software is like gardening – it requires constant tending.
+The hardest part about programming is naming things and cache invalidation.
+Code is like poetry; most of it shouldn't have been written.
+Weeks of programming can save you hours of planning.
+The best debugging tool is still careful thought, coupled with judiciously placed print statements.
+Programming is not about typing, it's about thinking.
+Software is a gas; it expands to fill its container.
+The best code is self-documenting.
+You can't have great software without a great team.
+Programming is the art of algorithm design and the craft of debugging errant code.
+Code reuse is the Holy Grail of Software Engineering.
+Programs should be written for people to read, and only incidentally for machines to execute.
+The good news about computers is that they do what you tell them to do. The bad news is that they do what you tell them to do.
+Programmers are in a race with the Universe to create bigger and better idiot-proof programs, while the Universe is trying to create bigger and better idiots.
+Software is eating the world.
+There are only two kinds of programming languages: those people complain about and those nobody uses.
+The most dangerous phrase in the language is 'we've always done it this way.'
+Code is the ultimate form of communication between humans and computers.
+Programming is like writing a book... except if you miss out a single comma on page 126, the whole thing makes no damn sense.
+The best way to get a project done faster is to start sooner.
+Software is a medium of expression.
+Code is poetry that compiles.
+The only constant in the technology industry is change.
+Programming is the science of the possible.
+Good software, like wine, takes time.
+The best code is code that doesn't exist.
+Programming is an art form that fights back.
+Code is craft.
+The best programmers are lazy.
+Software is the poetry of the digital age.
+Programming is about problem-solving, not syntax.
+Code is the DNA of the digital world.
+The art of programming is the art of organizing complexity.
+Software is a tool for amplifying human intelligence.
+Programming is the ultimate form of creativity.
+Code is the bridge between human ideas and machine execution.
+The best software is invisible.
+Programming is like solving a puzzle that changes while you're solving it.
+Code is the language of the future.
+Software is the manifestation of human thought in digital form.
+Programming is the art of making the impossible possible.
+Code is the closest thing to magic in the real world.
+The best programs are those that solve real problems.
+Software is the extension of the human mind.
+Programming is the process of turning coffee into code.
+Code is the poetry of logic.
+The best debugging happens before you write the code.
+Software is the crystallization of human knowledge.
+Programming is the art of elegant problem-solving.
+Code is the foundation of the digital revolution.
+The best software anticipates the user's needs.
+Programming is like architecture for the mind.
+Code is the medium through which we shape the digital world.
+Software is the nervous system of modern civilization.
+Programming is the art of building digital dreams.
+Code is the alphabet of the information age.
+The best programs are those that feel effortless to use.
+Software is the manifestation of pure thought.
+Programming is the closest thing we have to wizardry.
+Code is the blueprint of digital reality.
+The best debugging tool is a good night's sleep.
+Software is the engine of innovation.
+Programming is the art of controlled chaos.
+Code is the poetry of the machine age.
+The best programs grow organically over time.
+Software is the heartbeat of the modern world.
+Programming is like conducting a digital orchestra.
+Code is the DNA of artificial intelligence.
+The best software adapts to its users.
+Programming is the art of digital storytelling.
+Code is the foundation of computational thinking.
+Software is the medium of interactive art.
+Programming is like painting with pixels and logic.
+Code is the language computers speak fluently.
+The best programs are living, breathing entities.
+Software is the skeleton of digital experiences.
+Programming is the craft of turning ideas into reality.
+Code is the raw material of the information economy.
+The best debugging happens in the shower.
+Software is the nervous system of smart devices.
+Programming is like composing symphonies in binary.
+Code is the genetic code of digital organisms.
+The best programs are those you never have to think about.
+Software is the invisible infrastructure of modern life.
+Programming is the art of digital alchemy.
+Code is the medium of computational expression.
+The best software feels like an extension of yourself.
+Programming is like solving puzzles with infinite solutions.
+Code is the building blocks of virtual worlds.
+Software is the soul of smart machines.
+Programming is the craft of digital construction.
+Code is the thread that weaves the web together.
+The best programs are those that surprise their creators.
+Software is the lens through which we view data.
+Programming is like writing poetry that executes.
+Code is the foundation of algorithmic thinking.
+The best debugging happens when you step away from the computer.
+Software is the medium of digital communication.
+Programming is the art of encoding human intentions.
+Code is the instruction manual for silicon brains.
+The best programs are those that get out of your way.
+Software is the engine of digital transformation.
+Programming is like sculpting with electrons.
+Code is the universal translator between human and machine.
+The best software is indistinguishable from magic.
+Programming is the discipline of computational problem-solving.
+Code is the blueprint for digital architecture.
+Software is the medium of interactive experiences.
+Programming is like choreographing a dance of data.
+Code is the vocabulary of computational literacy.
+The best programs are those that evolve with their users.
+Software is the connective tissue of networked systems.
+Programming is the art of digital craftsmanship.
+Code is the recipe for computational cooking.
+The best debugging requires understanding, not guessing.
+Software is the platform for digital creativity.
+Programming is like writing instructions for a very literal genie.
+Code is the foundation of computational science.
+The best programs are those that feel intuitive.
+Software is the medium of digital art.
+Programming is the craft of logical construction.
+Code is the language of algorithmic expression.
+The best software disappears into the background.
+Programming is like building castles in the cloud.
+Code is the fabric of cyberspace.
+Software is the engine of automated processes.
+Programming is the art of computational composition.
+Code is the script for digital theater.
+The best programs are those that teach you something new.
+Software is the nervous system of intelligent systems.
+Programming is like weaving patterns in the matrix.
+Code is the foundation of machine learning.
+The best debugging happens through understanding the problem.
+Software is the medium of digital interaction.
+Programming is the craft of electronic engineering.
+Code is the blueprint for artificial minds.
+The best programs are those that anticipate your needs.
+Software is the platform for innovation.
+Programming is like painting with algorithms.
+Code is the genetic material of software evolution.
+The best software learns from its users.
+Programming is the discipline of systematic problem-solving.
+Code is the medium of computational storytelling.
+Software is the engine of productivity.
+Programming is like composing music for machines.
+Code is the foundation of digital literacy.
+The best programs are those that make complex things simple.
+Software is the skeleton of digital organisms.
+Programming is the art of logical reasoning.
+Code is the language of computational creativity.
+The best debugging involves rubber duck debugging.
+Software is the medium of virtual reality.
+Programming is like architecting digital spaces.
+Code is the instruction set for electronic minds.
+The best programs are those that grow with you.
+Software is the platform for digital collaboration.
+Programming is the craft of electronic problem-solving.
+Code is the blueprint for computational thinking.
+The best software feels like it was made just for you.
+Programming is like conducting experiments in silicon.
+Code is the foundation of artificial intelligence.
+Software is the medium of digital expression.
+Programming is the art of controlled complexity.
+Code is the vocabulary of machine communication.
+The best programs are those that surprise and delight.
+Software is the engine of digital innovation.
+Programming is like writing poetry for processors.
+Code is the genetic code of digital evolution.
+The best debugging happens through systematic elimination.
+Software is the nervous system of connected devices.
+Programming is the discipline of computational design.
+Code is the medium of algorithmic art.
+The best programs are those that feel alive.
+Software is the platform for digital transformation.
+Programming is like building bridges between ideas and implementation.
+Code is the foundation of computational linguistics.
+The best software adapts to changing requirements.
+Programming is the craft of digital architecture.
+Code is the blueprint for electronic systems.
+Software is the medium of interactive media.
+Programming is like solving three-dimensional puzzles.
+Code is the language of computational science.
+The best programs are those that make the impossible seem easy.
+Software is the engine of technological progress.
+Programming is the art of digital construction.
+Code is the fabric of the information superhighway.
+The best debugging happens through patient observation.
+Software is the medium of digital communication.
+Programming is like choreographing a ballet of bytes.
+Code is the foundation of cybernetics.
+The best programs are those that feel effortless.
+Software is the platform for digital creativity.
+Programming is the discipline of computational thinking.
+Code is the vocabulary of electronic expression.
+The best software is like a good friend - reliable and helpful.
+Programming is like composing symphonies for silicon.
+Code is the genetic material of software organisms.
+Software is the medium of augmented reality.
+Programming is the art of digital storytelling.
+Code is the blueprint for intelligent systems.
+The best programs are those that inspire creativity.
+Software is the engine of automated intelligence.
+Programming is like painting on the canvas of possibility.
+Code is the foundation of computational biology.
+The best debugging happens through methodical investigation.
+Software is the nervous system of smart cities.
+Programming is the craft of electronic artistry.
+Code is the language of computational physics.
+The best programs are those that enhance human capability.
+Software is the platform for digital innovation.
+Programming is like building cathedrals in code.
+Code is the medium of computational mathematics.
+The best software grows more valuable over time.
+Programming is the discipline of systematic construction.
+Code is the blueprint for digital ecosystems.
+Software is the engine of knowledge work.
+Programming is like writing haikus for hardware.
+Code is the foundation of quantum computing.
+The best programs are those that solve real problems elegantly.
+Software is the medium of virtual experiences.
+Programming is the art of computational poetry.
+Code is the vocabulary of artificial intelligence.
+The best debugging happens through understanding cause and effect.
+Software is the platform for digital collaboration.
+Programming is like conducting orchestras of electrons.
+Code is the genetic code of technological evolution.
+The best programs are those that feel like natural extensions of thought.
+Software is the nervous system of the Internet of Things.
+Programming is the craft of digital engineering.
+Code is the language of computational chemistry.
+The best software anticipates and prevents problems.
+Programming is like building universes in miniature.
+Code is the foundation of blockchain technology.
+Software is the medium of immersive experiences.
+Programming is the discipline of logical architecture.
+Code is the blueprint for cognitive computing.
+The best programs are those that make you forget they exist.
+Software is the engine of scientific discovery.
+Programming is like writing love letters to the future.
+Code is the fabric of digital reality.
+The best debugging happens through understanding the user's perspective.
+Software is the platform for human-computer interaction.
+Programming is the art of electronic sculpture.
+Code is the vocabulary of machine consciousness.
+The best programs are those that grow more useful with use.
+Software is the medium of digital empowerment.
+Programming is like composing equations that execute.
+Code is the foundation of autonomous systems.
+The best software becomes indispensable once you've used it.
+Programming is the discipline of computational aesthetics.
+Code is the blueprint for digital minds.
+Software is the engine of social connectivity.
+Programming is like weaving tapestries of logic.
+Code is the genetic material of software ecosystems.
+The best programs are those that make complex tasks feel simple.
+Software is the nervous system of global communication.
+Programming is the craft of digital problem-solving.
+Code is the language of computational neuroscience.
+The best debugging happens through understanding the system as a whole.
+Software is the platform for digital transformation.
+Programming is like painting masterpieces with mathematics.
+Code is the foundation of computer vision.
+The best programs are those that learn and adapt.
+Software is the medium of augmented intelligence.
+Programming is the art of controlled emergence.
+Code is the vocabulary of natural language processing.
+The best software feels like it was designed by someone who truly understands you.
+Programming is like building dreams in digital space.
+Code is the blueprint for robotic intelligence.
+Software is the engine of personalized experiences.
+Programming is the discipline of computational elegance.
+Code is the genetic code of digital life forms.
+The best programs are those that inspire and empower their users.
+Software is the medium of collective intelligence.
+Programming is like composing algorithms that sing.
+Code is the foundation of deep learning.
+The best debugging happens through empathy with both user and machine.
+Software is the platform for infinite possibility.
