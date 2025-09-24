@@ -2,6 +2,10 @@
 #include "../Server/Server.hpp"
 #include "../Client/Client.hpp"
 
+
+/*
+* Set-up the services command map
+*/
 Services::Services(Server *srv) : server(srv)
 {
     command_map["PASS"] = &Services::pass;
@@ -82,6 +86,9 @@ std::vector<std::string> split_params(const std::string &params) {
     return result;
 }
 
+/*
+* Capture a command shot from a client
+*/
 std::string cmd_shot(int fd) {
     char buffer[512] = {0};
     int readed_bytes = read(fd, buffer, 512);
@@ -94,6 +101,8 @@ std::string cmd_shot(int fd) {
 
 /*
 * Strip trailing non-printable characters from a command string
+* and store them as the client's command terminators if not already set.
+* Read Client::setCommandTerminators() for more info
 */
 std::string stripTrailingTerminators(std::string &cmd, Client &client)
 {
@@ -116,25 +125,9 @@ std::string stripTrailingTerminators(std::string &cmd, Client &client)
     return cmd;
 }
 
-void debug_client(Client &client, int client_fd, const std::string &command, const std::vector<std::string> &param_list) {
-    std::cout << "[SERVICE] size of params: " << param_list.size() << std::endl;
-    std::cout << "[SERVICE] infos about the client " << client_fd << " :" << std::endl;
-    std::cout << "[SERVICE]  - Nick: " << client.getNick() << std::endl;
-    std::cout << "[SERVICE]  - Username: " << client.getUsername() << std::endl;
-    std::cout << "[SERVICE]  - Realname: " << client.getRealname() << std::endl;
-    std::cout << "[SERVICE]  - Authenticated: " << (client.isAuthenticated() ? "Yes" : "No") << std::endl;
-    std::cout << "[SERVICE]  - Registered: " << (client.isRegistered() ? "Yes" : "No") << std::endl;
-
-    std::cout << "[SERVICE] Handling command: [" << command << "] with params: [";
-    for (const auto &param : param_list) {
-        std::cout << param << " ";
-    }
-    std::cout << "]" << std::endl;
-    std::cout << std::endl;
-}
-
 /*
 * Process a single command line from a client
+* Returns true if processing should continue, false otherwise
 */
 bool Services::processCommandLine(Client &client, int client_fd, std::string &command_line)
 {
@@ -162,7 +155,6 @@ bool Services::processCommandLine(Client &client, int client_fd, std::string &co
     {
         if (!isAuth(client, command)) return false;
         if (!isRegistered(client, command)) return false;
-        debug_client(client, client_fd, command, param_list);
 
         try {
             (this->*(it->second))(client, param_list);
@@ -187,7 +179,9 @@ bool Services::processCommandLine(Client &client, int client_fd, std::string &co
 }
 
 /*
-* Handle incoming commands from clients
+* Handle incoming payload from a client
+* This function accumulates data until a full command is received
+* and then processes each command line individually.
 */
 void Services::dealWithClient(int client_fd)
 {
@@ -246,6 +240,10 @@ void Services::dealWithClient(int client_fd)
 
 /*
 * Handle sleepy clients
+* This function checks if a client has been idle for too long
+* Two thresholds are used:
+* - PING_INTERVAL: if exceeded, a PING message is sent to the client if the client didn't send any command since PING_INTERVAL
+* - CLIENT_TIMEOUT: if exceeded, the client is disconnected due to inactivity
 */
 void Services::dealWithSleepModeClient(int client_fd) {
     std::cout << "[SERVICE] Handling sleepy client on fd " << client_fd << std::endl;
