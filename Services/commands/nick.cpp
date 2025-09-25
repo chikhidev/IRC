@@ -11,15 +11,15 @@ void Services::nick(Client &client, std::vector<std::string> &params)
         throw std::runtime_error("Server reference is null");
     }
 
-    if (params.size() > 1)
-    {
-        server->dmClient(client, 432, "NICK: Too many parameters");
-        return;
-    }
-
     if (params.empty())
     {
         server->dmClient(client, 431, "NICK: No nickname given");
+        return;
+    }
+    
+    if (params.size() > 1)
+    {
+        server->dmClient(client, 432, "NICK: Too many parameters");
         return;
     }
 
@@ -40,6 +40,6 @@ void Services::nick(Client &client, std::vector<std::string> &params)
     server->removeUniqueNick(client.getNick());
     client.setNick(params[0]);
     server->addUniqueNick(params[0], client);
-    std::string response = client.getNick() + " NICK " + params[0];
+    std::string response = "NICK: " + params[0];
     server->dmClient(client, 0, response);
 }

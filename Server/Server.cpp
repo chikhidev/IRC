@@ -283,6 +283,8 @@ void Server::createClient()
     makeNonBlocking(new_socket);
     addEpollFd(new_socket);
 
+    dmClient(*clients[new_socket], 0, "Welcome to the IRC server!");
+
     log("Client connected: " + glob::to_string(new_socket));
 }
 

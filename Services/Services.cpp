@@ -21,6 +21,7 @@ Services::Services(Server *srv) : server(srv)
     command_map["KICK"] = &Services::kick;
     command_map["INVITE"] = &Services::invite;
     command_map["PING"] = &Services::ping;
+    command_map["CAP"] = &Services::cap;
 }
 
 
@@ -36,7 +37,7 @@ bool Services::isAuth(Client &client, std::string &command)
     }
 
     if (
-        command != "PASS" && command != "QUIT"
+        command != "PASS" && command != "QUIT" && command != "CAP"
         && !client.isAuthenticated())
     {
         server->dmClient(client, 451, "You must be authenticated to use this command");
@@ -57,6 +58,7 @@ bool Services::isRegistered(Client &client, std::string &command)
     if (command != "PASS" &&
         command != "NICK" &&
         command != "USER" &&
+        command != "CAP" &&
         command != "QUIT")
     {
         if (!client.isRegistered()) {
@@ -117,11 +119,17 @@ std::string stripTrailingTerminators(std::string &cmd, Client &client)
     size_t end = cmd.size();
     std::string terminators;
 
-    while (end > 0 && !isprint(static_cast<unsigned char>(cmd[end - 1])))
-    {
+    while (end > 0 && (cmd[end - 1] == '\r' || cmd[end - 1] == '\n' || cmd[end - 1] == '\t')) {
         --end;
     }
     terminators = cmd.substr(end);
+
+    if (terminators.empty())
+        terminators = "\n";
+
+    if (terminators[terminators.size() - 1] != '\n')
+        terminators += '\n';
+
     cmd.erase(end);
 
     if (!client.hasSentFirstCommand())

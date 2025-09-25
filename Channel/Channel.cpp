@@ -37,7 +37,7 @@ void Channel::removeMember(Client &client) {
 
     bool is_operator = false;
     bool found = false;
-    
+
     // Check and remove from members map
     std::map<int, Client*>::iterator members_it = members.find(client.getFd());
     if (members_it != members.end()) {
@@ -54,16 +54,13 @@ void Channel::removeMember(Client &client) {
     }
     
     if (found) {
-        if (is_operator && operators.size() == 1) {
+        if (is_operator && operators.size() == 0) {
             broadcastToMembers(client, "NOTICE " + name + " :The channel operator has left the channel, the channel will be removed.");
             client.removeFromJoinedChannels(name);
             server->removeChannel(name);
             return;
         }
         client.removeFromJoinedChannels(name);
-
-    } else {
-        throw std::runtime_error("Client is not a member of the channel");
     }
 }
 
@@ -138,7 +135,9 @@ void Channel::broadcastToMembers(Client &sender, const std::string &message) {
 
     // check if sender is a member
     if (!isMember(sender)) {
-        throw std::runtime_error("Not a member of the channel");
+        // throw std::runtime_error("Not a member of the channel");
+        server->dmClient(sender, 442, name + " :You're not on that channel");
+        return;
     }
 
     //send to operators
@@ -248,3 +247,4 @@ bool Channel::isMatchingPassword(const std::string &key) const {
 size_t Channel::getOperatorsCount() const {
     return operators.size();
 }
+

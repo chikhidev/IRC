@@ -16,6 +16,7 @@ SERVICES_COMMANDS=\
 	Services/commands/kick.cpp \
 	Services/commands/invite.cpp \
 	Services/commands/ping.cpp \
+	Services/commands/cap.cpp \
 
 SRC=Server/Server.cpp \
 	Services/Services.cpp \
