@@ -1,10 +1,10 @@
-#include "irc_bot.hpp"
+#include "../includes/irc_bot.hpp"
 
 #define BOT_NAME "Messi"
 
 #define CMD_PASS(password) std::string("PASS ") + password + "\r\n"
 #define CMD_NICK(nickname) std::string("NICK ") + nickname + "\r\n"
-#define CMD_USER(username, realname) std::string("USER ") + username + " 0 * " + realname + "\r\n"
+#define CMD_USER(username, realname) std::string("USER ") + username + " 0 * :" + realname + "\r\n"
 #define CMD_JOIN(channel) std::string("JOIN ") + channel + "\r\n"
 #define CMD_PRIVMSG(target, message) std::string("PRIVMSG ") + target + " :" + std::string(message) + "\r\n"
 

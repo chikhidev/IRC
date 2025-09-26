@@ -36,6 +36,8 @@ void Services::pass(Client &client, std::vector<std::string> &params)
         return ;
     }
 
+    client.disconnect();
+
     server->dmClient(client, 464, "Password incorrect, closing link");
-    server->removeClient(client);
+    server->addToDeleteQueue(client);
 }

@@ -12,6 +12,7 @@ class Server {
     std::string password;
     int fd;
     sockaddr_in addr;
+    bool *running;
 
     int epoll_fd;
     struct epoll_event event;
@@ -23,11 +24,11 @@ class Server {
     std::map<int, Client*> clients;
     std::map<std::string, Client*> unique_nicks;
     std::map<std::string, Channel*> channels;
+    std::queue<int> clients_to_delete;
 
     // PRIVATE METHODS
     void addEpollFd(int);
     void removeEpollFd(int);
-    void registerClient(int, Client);
     void createClient();
     void makeNonBlocking(int);
 
@@ -50,12 +51,13 @@ public:
 
     bool isClientRegistered(int) const;
     void registerClient(int);
-    void removeClient(int);
     void removeClient(Client&);
+    void addToDeleteQueue(Client&);
+    void addToDeleteQueue(int);
+    void processDeletionQueue();
 
     void createChannel(const std::string &, Client&);
     void removeChannel(const std::string &);
-    void removeClientFromChannel(const std::string &, Client &);
     
     Client* getClient(int);
     Client* getClientByNick(const std::string &);
@@ -67,6 +69,8 @@ public:
     void log(const std::string &message) const;
 
     size_t getDiffTime(size_t) const;
+
+    void stop(int);
 };
 
 

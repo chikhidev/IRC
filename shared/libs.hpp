@@ -10,15 +10,23 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <map>
-#include <vector>
+#include <queue>
 #include <algorithm>
 #include <fcntl.h>
 #include <errno.h>
+#include <signal.h>
 
 #define MAX_CONNECTIONS 512
 #define MAX_COMMAND_LENGTH 1024
 #define NICK_LIMIT 9
-#define PING_INTERVAL 10
-#define CLIENT_TIMEOUT 15
+#define PING_INTERVAL 100
+#define CLIENT_TIMEOUT 150
+#define EPOLL_TIMEOUT 50000
+
+namespace glob {
+    std::string to_string(int);
+    bool *server_running();
+    void stop_running(int);
+}
 
 #endif

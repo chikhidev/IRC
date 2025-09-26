@@ -49,11 +49,12 @@ public:
     void kick(Client&, std::vector<std::string>&);
     void invite(Client&, std::vector<std::string>&);
     void ping(Client&, std::vector<std::string>&);
+    void cap(Client&, std::vector<std::string>&);
 
     void mode(Client&, std::vector<std::string>&); // MODE command handler, with sub-handlers
-        void handlePass(Channel&, Client&, std::vector<std::string>&);
-        void handleMembersLimit(Channel&, Client&, std::vector<std::string>&);
-        void handleOperator(Channel&, Client&, std::vector<std::string>&);
+        bool handlePass(Channel&, Client&, bool, std::string*);
+        bool handleMembersLimit(Channel&, Client&, bool, std::string*);
+        bool handleOperator(Channel&, Client&, bool, std::string*);
 };
 
 #endif

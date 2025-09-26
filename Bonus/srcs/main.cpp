@@ -1,4 +1,4 @@
-#include "irc_bot.hpp"
+#include "../includes/irc_bot.hpp"
 #include <exception>
 #include <iostream>
 
