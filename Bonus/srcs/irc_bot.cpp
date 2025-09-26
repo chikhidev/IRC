@@ -1,4 +1,4 @@
-#include "irc_bot.hpp"
+#include "../includes/irc_bot.hpp"
 
 #define BOT_NAME "Messi"
 
@@ -103,6 +103,16 @@ void IrcBot::load_file(const std::string &path, std::vector<std::string> &out)
 
 std::string IrcBot::random_from(const std::vector<std::string> &vec)
 {
+	// TODO: print vec content for debug
+	if (vec.empty() == false)
+	{
+		std::cout << "Quotes/Jokes loaded:" << std::endl;
+	}
+	for (size_t i = 0; i < vec.size(); ++i)
+	{
+		std::cout << "Loaded: " << vec[i] << std::endl;
+	}
+
 	if (vec.empty())
 		return std::string("No data available");
 	return vec[rand() % vec.size()];

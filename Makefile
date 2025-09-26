@@ -1,4 +1,5 @@
 NAME=ircserv
+BONUS_NAME=ircbot
 CC=c++
 CFLAGS=-Wall -Wextra -Werror -std=c++98 -O3
 
@@ -25,24 +26,33 @@ SRC=Server/Server.cpp \
 	shared/glob.cpp \
 	main.cpp
 
+BONUS_SRC=Bonus/srcs/irc_bot.cpp \
+		  Bonus/srcs/main.cpp
+
 SRC += $(SERVICES_COMMANDS)
 
 OBJ=$(SRC:.cpp=.o)
+BONUS_OBJ=$(BONUS_SRC:.cpp=.o)
 
 all: $(NAME)
 
 $(NAME): $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
 
+$(BONUS_NAME): $(BONUS_OBJ)
+	$(CC) $(CFLAGS) $(BONUS_OBJ) -o $(BONUS_NAME)
+
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 b: all clean
 
+bonus: $(BONUS_NAME)
+
 clean:
-	@rm -f $(OBJ)
+	rm -f $(OBJ) $(BONUS_OBJ)
 
 fclean: clean
-	@rm -f $(NAME)
+	rm -f $(NAME) $(BONUS_NAME)
 
 re: fclean all
