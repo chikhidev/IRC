@@ -20,7 +20,7 @@
 #define NICK_LIMIT 9
 #define CHANNEL_NAME_LIMIT 50
 #define PING_INTERVAL 100
-#define CLIENT_TIMEOUT 150
+#define CLIENT_TIMEOUT 1500000
 #define EPOLL_TIMEOUT 50000
 
 namespace glob {

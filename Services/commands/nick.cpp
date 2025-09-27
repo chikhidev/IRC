@@ -31,17 +31,6 @@ void Services::nick(Client &client, std::vector<std::string> &params)
         return;
     }
 
-    for (size_t i = 0; i < nickname.length(); ++i)
-    {
-        if (!(nickname[i] < 'a' || nickname[i] > 'z') ||
-            !(nickname[i] < 'A' || nickname[i] > 'Z') ||
-            !(nickname[i] < '0' || nickname[i] > '9'))
-        {
-            server->dmClient(client, 432, "NICK: Erroneous nickname");
-            return;
-        }
-    }
-
     // Check if nickname is already in use
     Client *existing_client = server->getClientByNick(params[0]);
     if (existing_client && existing_client != &client)
