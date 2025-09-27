@@ -93,6 +93,12 @@ bool Channel::isMember(const Client &client) const {
 */
 bool Channel::isOperator(const Client &client) const {
     std::map<const std::string, Client*>::const_iterator it = operators.find(client.getNick());
+    if (it != operators.end()) {
+        server->log("Client " + client.getNick() + " is an operator of channel " + name);
+    }
+    if (it->second != &client) {
+        server->log("Client " + client.getNick() + " operator instance does not match");
+    }
     return it != operators.end() && it->second == &client;
 }
 

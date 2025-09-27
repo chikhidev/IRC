@@ -18,6 +18,7 @@ SERVICES_COMMANDS=\
 	Services/commands/invite.cpp \
 	Services/commands/ping.cpp \
 	Services/commands/cap.cpp \
+	Services/commands/whois.cpp \
 
 SRC=Server/Server.cpp \
 	Services/Services.cpp \
