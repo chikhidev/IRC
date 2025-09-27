@@ -29,12 +29,12 @@ void Services::mode(Client &client, std::vector<std::string> &params)
     const std::string valid_modes = "itkol";
     for (size_t i = 0; i < modes.size() - 1; i += 2) {
         if (modes[i] != '+' && modes[i] != '-') {
-            server->dmClient(client, 472, modes[i] + modes[i + 1] + " :is not a valid mode");
+            server->dmClient(client, 472, std::string() + modes[i] + modes[i + 1] + " :is not a valid mode");
             return;
         }
 
         if (valid_modes.find(modes[i + 1]) == std::string::npos) {
-            server->dmClient(client, 472, modes[i] + modes[i + 1] + " :is not a valid mode");
+            server->dmClient(client, 472, std::string() + modes[i] + modes[i + 1] + " :is not a valid mode");
             return;
         }
     }
