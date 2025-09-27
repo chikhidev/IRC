@@ -1,6 +1,14 @@
 #include "../includes/irc_bot.hpp"
 #include <exception>
 #include <iostream>
+#include <csignal>
+
+static volatile sig_atomic_t g_stop = 0;
+
+static void sigint_handler(int /*signum*/)
+{
+    g_stop = 1;
+}
 
 int main(int argc, char **argv)
 {
@@ -26,11 +34,14 @@ int main(int argc, char **argv)
 	channels.push_back(channelArg.substr(start));
 
 	IrcBot bot(host, port, channels, password);
+
+    std::signal(SIGINT, sigint_handler);
+
 	try {
 		bot.bot_connect();
 
 		bool running = true;
-		while (running)
+		while (running && !g_stop)
 		{
 			running = bot.tick();
 		}
