@@ -96,11 +96,7 @@ std::string cmd_shot(int fd) {
     char buffer[512] = {0};
     int readed_bytes = read(fd, buffer, 512);
     if (readed_bytes < 0) {
-        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            return "";
-        }
-        // Anything else is an error
-        throw std::runtime_error("Read error on fd " + glob::to_string(fd) + ": " + strerror(errno));
+        throw std::runtime_error("Read error on fd " + glob::to_string(fd));
     } else if (readed_bytes == 0) {
         // Connection closed by the client
         throw std::runtime_error("Client disconnected on fd " + glob::to_string(fd));
