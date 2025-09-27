@@ -150,6 +150,7 @@ void Channel::broadcastToMembers(Client &sender, const std::string &message) {
     for (std::map<const std::string, Client*>::iterator it = operators.begin(); it != operators.end(); ++it) {
         if (it->second->getFd() != sender.getFd()) {
             sender.sendMessage(*(it->second), message);
+            return;
         }
     }
 

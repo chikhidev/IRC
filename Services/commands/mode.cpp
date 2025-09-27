@@ -98,9 +98,13 @@ bool Services::handlePass(Channel &c, Client &client, bool state, std::string *p
     }
 
     c.updateMode('k', state);
-    c.updatePassword(*param);
+
+    if (!state) c.updatePassword("");
+    else c.updatePassword(*param);
+
     std::string mode_change = ":" + client.getNick() + " MODE " + c.getName() + " " + (state ? "+k" : "-k");
     c.broadcastToMembers(client, mode_change);
+    
     return state;
 }
 
