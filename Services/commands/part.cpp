@@ -11,7 +11,7 @@ void Services::part(Client &client, std::vector<std::string> &params) {
         throw std::runtime_error("Server reference is null");
     }
 
-    if (params.size() < 1 || params.size() > 2) {
+    if (params.size() < 1) {
         server->dmClient(client, 461, "PART :Bad parameters");
         return;
     }
@@ -23,15 +23,18 @@ void Services::part(Client &client, std::vector<std::string> &params) {
     }
 
     std::string reason;
-    if (params.size() == 2) {
+    if (params.size() >= 2) {
         reason = params[1];
+
+        for (size_t i = 2; i < params.size(); ++i) {
+            reason += " " + params[i];
+        }
+
         if (reason.empty() || reason[0] != ':') {
             server->dmClient(client, 461, "PART :Bad parameters");
             return;
         }
     }
-
-
 
     try {
         Channel *_channel = server->getChannel(channel_name);

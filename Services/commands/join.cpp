@@ -19,6 +19,11 @@ void Services::join(Client &client, std::vector<std::string> &params) {
 
     std::string channel_name = params[0];
 
+    if (channel_name.length() > CHANNEL_NAME_LIMIT) {
+        server->dmClient(client, 403, "JOIN :Too long channel name");
+        return;
+    }
+
     if (channel_name == "0") {
         client.quitAllChannels();
         server->dmClient(client, 366, "* :End of /NAMES list.");
