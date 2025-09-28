@@ -10,14 +10,14 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
     }
 
     if (params.size() < 1) {
-        server->dmClient(client, 461, "TOPIC :bad number of parameters");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "TOPIC :bad number of parameters");
         return;
     }
 
     std::string channel_name = params[0];
 
     if (channel_name[0] != '#') {
-        server->dmClient(client, 403, channel_name + " :No such channel");
+        server->dmClient(client, ERR_NOSUCHCHANNEL, channel_name + " :No such channel");
         return;
     }
 
@@ -26,7 +26,7 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
     if (params.size() > 1) {
         new_topic = params[1];
         if (new_topic.empty() || new_topic[0] != ':') {
-            server->dmClient(client, 461, "TOPIC :badly formed topic");
+            server->dmClient(client, ERR_UNKNOWNCOMMAND, "TOPIC :badly formed topic");
             return ;
         }
 
@@ -39,20 +39,20 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
     
     Channel *channel = server->getChannel(channel_name);
     if (!channel) {
-        server->dmClient(client, 403, channel_name + " :No such channel");
+        server->dmClient(client, ERR_NOSUCHCHANNEL, channel_name + " :No such channel");
         return;
     }
 
     if (!channel->isMember(client)) {
-        server->dmClient(client, 442, channel_name + " :You're not a member of that channel");
+        server->dmClient(client, ERR_NOTONCHANNEL, channel_name + " :You're not a member of that channel");
         return;
     }
 
     if (new_topic.empty()) {
         if (channel->getTopic().empty()) {
-            server->dmClient(client, 331, channel->getName() + " :No topic is set");
+            server->dmClient(client, RPL_NOTOPIC, channel->getName() + " :No topic is set");
         } else {
-            server->dmClient(client, 332, channel->getName() + " :" + channel->getTopic());
+            server->dmClient(client, RPL_TOPIC, channel->getName() + " :" + channel->getTopic());
         }
 
         return ;
@@ -62,7 +62,7 @@ void Services::topic(Client &client, std::vector<std::string> &params) {
     bool only_operators = channel->mode('t');
 
     if (only_operators && !is_operator) {
-        server->dmClient(client, 482, channel_name + " :Only channel operators may set the topic");
+        server->dmClient(client, ERR_CHANOPRIVSNEEDED, channel_name + " :Only channel operators may set the topic");
         return;
     }
     

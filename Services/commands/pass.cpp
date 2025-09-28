@@ -13,31 +13,31 @@ void Services::pass(Client &client, std::vector<std::string> &params)
     
     if (params.empty())
     {
-        server->dmClient(client, 461, "Not enough parameters");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "Not enough parameters");
         return;
     }
 
     std::string password = params[0];
     if (password.empty())
     {
-        server->dmClient(client, 461, "Not enough parameters");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "Not enough parameters");
         return;
     }
 
     if (client.isAuthenticated()) {
-        server->dmClient(client, 462, "You may not authenticate again");
+        server->dmClient(client, ERR_ALREADYAUTH, "You may not authenticate again");
         return;
     }
 
     if (server->isPasswordMatching(password))
     {
         client.setAuthenticated(true);
-        server->dmClient(client, 001, "Welcome to the IRC server!");
+        server->dmClient(client, RPL_WELCOME, "Welcome to the IRC server!");
         return ;
     }
 
     client.disconnect();
 
-    server->dmClient(client, 464, "Password incorrect, closing link");
+    server->dmClient(client, ERR_PASSWDMISMATCH, "Password incorrect, closing link");
     server->addToDeleteQueue(client);
 }

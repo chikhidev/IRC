@@ -15,6 +15,8 @@
 #include <fcntl.h>
 #include <signal.h>
 
+#include "status_codes.hpp"
+
 #define MAX_CONNECTIONS 512
 #define MAX_COMMAND_LENGTH 1024
 #define NICK_LIMIT 9

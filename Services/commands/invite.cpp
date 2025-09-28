@@ -15,7 +15,7 @@ void Services::invite(Client &client, std::vector<std::string>& params)
 {
     if (params.size() < 2)
     {
-        server->dmClient(client, 461, "INVITE :Not enough parameters");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "INVITE :Not enough parameters");
         return;
     }
 
@@ -25,33 +25,33 @@ void Services::invite(Client &client, std::vector<std::string>& params)
     Client *targetClient = server->getClientByNick(targetNickname);
     if (!targetClient)
     {
-        server->dmClient(client, 401, targetNickname + " :No such nick/channel");
+        server->dmClient(client, ERR_NOSUCHNICK, targetNickname + " :No such nick/channel");
         return;
     }
 
     Channel *channel = server->getChannel(channelName);
     if (!channel)
     {
-        server->dmClient(client, 403, "INVITE :No such channel");
+        server->dmClient(client, ERR_NOSUCHCHANNEL, "INVITE :No such channel");
         return;
     }
 
     if (!channel->isOperator(client))
     {
-        server->dmClient(client, 482, channelName + " :You're not channel operator");
+        server->dmClient(client, ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
         return;
     }
 
     if (channel->isMember(*targetClient))
     {
-        server->dmClient(client, 443, targetNickname + " " + channelName + " :is already on channel");
+        server->dmClient(client, ERR_USERONCHANNEL, targetNickname + " " + channelName + " :is already on channel");
         return;
     }
 
     bool is_target_invited = channel->isInvited(*targetClient);
     if (is_target_invited)
     {
-        server->dmClient(client, 443, targetNickname + " " + channelName + " :is already invited");
+        server->dmClient(client, ERR_INVITEONLYCHAN, targetNickname + " " + channelName + " :is already invited");
         return;
     }
 
@@ -60,6 +60,6 @@ void Services::invite(Client &client, std::vector<std::string>& params)
         channel->addInvited(*targetClient);
     }
 
-    server->dmClient(client, 341, targetNickname + " " + channelName);
+    server->dmClient(client, RPL_INVITING, targetNickname + " " + channelName);
     client.sendMessage(*targetClient, "INVITE " + targetNickname + " " + channelName);
 }

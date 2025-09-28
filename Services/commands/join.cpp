@@ -13,25 +13,25 @@ void Services::join(Client &client, std::vector<std::string> &params) {
     }
 
     if (params.size() < 1) {
-        server->dmClient(client, 461, "JOIN :Bad parameters");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "JOIN :Bad parameters");
         return;
     }
 
     std::string channel_name = params[0];
 
     if (channel_name.length() > CHANNEL_NAME_LIMIT) {
-        server->dmClient(client, 403, "JOIN :Too long channel name");
+        server->dmClient(client, ERR_INPUTTOOLONG, "JOIN :Too long channel name");
         return;
     }
 
     if (channel_name == "0") {
         client.quitAllChannels();
-        server->dmClient(client, 366, "* :End of /NAMES list.");
+        server->dmClient(client, RPL_ENDOFNAMES, "* :End of /NAMES list.");
         return;
     }
 
     if (channel_name[0] != '#') {
-        server->dmClient(client, 403, "JOIN :No such channel");
+        server->dmClient(client, ERR_NOSUCHCHANNEL, "JOIN :No such channel");
         return;
     }
 
@@ -43,19 +43,19 @@ void Services::join(Client &client, std::vector<std::string> &params) {
             Channel *new_channel = server->getChannel(channel_name);
 
             new_channel->broadcastToMembers(client, "JOIN :" + channel_name);
-            server->dmClient(client, 331, channel_name + " :No topic is set");
+            server->dmClient(client, RPL_NOTOPIC, channel_name + " :No topic is set");
             new_channel->listMembers(client);
 
             return;
         }
 
         if (existing_channel->isMember(client)) {
-            server->dmClient(client, 443, "JOIN :You're already on that channel");
+            server->dmClient(client, ERR_USERONCHANNEL, "JOIN :You're already on that channel");
             return;
         }
 
         if (existing_channel->isFull()) {
-            server->dmClient(client, 471, "JOIN :Channel is full");
+            server->dmClient(client, ERR_CHANNELISFULL, "JOIN :Channel is full");
             return;
         }
 
@@ -65,7 +65,7 @@ void Services::join(Client &client, std::vector<std::string> &params) {
             is_channel_key_protected &&
             params.size() < 2
         ) {
-            server->dmClient(client, 475, "JOIN :This channel requires a key");
+            server->dmClient(client, ERR_NEEDMOREPARAMS, "JOIN :This channel requires a key");
             return;
         }
 
@@ -73,7 +73,7 @@ void Services::join(Client &client, std::vector<std::string> &params) {
             is_channel_key_protected &&
             !existing_channel->isMatchingPassword(params[1])
         ) {
-            server->dmClient(client, 475, "JOIN :Bad channel key");
+            server->dmClient(client, ERR_BADCHANNELKEY, "JOIN :Bad channel key");
             return;
         }
 
@@ -83,7 +83,7 @@ void Services::join(Client &client, std::vector<std::string> &params) {
             existing_channel->mode('i') &&
             !is_client_invited
         ) {
-            server->dmClient(client, 473, "JOIN :Cannot join channel (+i)");
+            server->dmClient(client, ERR_INVITEONLYCHAN, "JOIN :Cannot join channel (+i)");
             return;
         }
 
@@ -98,14 +98,14 @@ void Services::join(Client &client, std::vector<std::string> &params) {
 
         std::string topic = existing_channel->getTopic();
         if (topic.empty()) {
-            server->dmClient(client, 331, channel_name + " :No topic is set");
+            server->dmClient(client, RPL_NOTOPIC, channel_name + " :No topic is set");
         } else {
-            server->dmClient(client, 332, channel_name + " :" + topic);
+            server->dmClient(client, RPL_TOPIC, channel_name + " :" + topic);
         }
 
         existing_channel->listMembers(client);
         
     } catch (const std::exception &e) {
-        server->dmClient(client, 403, "JOIN :" + std::string(e.what()));
+        server->dmClient(client, ERR_NOSUCHCHANNEL, "JOIN :" + std::string(e.what()));
     }
 }

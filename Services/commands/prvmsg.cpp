@@ -5,7 +5,7 @@
 
 void Services::prvmsg(Client &client, std::vector<std::string> &params) {
     if (params.size() < 2) {
-        server->dmClient(client, 461, "PRIVMSG :Not enough parameters");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "PRIVMSG :Not enough parameters");
         return;
     }
 
@@ -13,12 +13,12 @@ void Services::prvmsg(Client &client, std::vector<std::string> &params) {
     std::string message = params[1];
 
     if (target.empty() || message.empty()) {
-        server->dmClient(client, 461, "PRIVMSG :Not enough parameters");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "PRIVMSG :Not enough parameters");
         return;
     }
 
     if (message[0] != ':') {
-        server->dmClient(client, 412, "PRIVMSG :Badly formed message");
+        server->dmClient(client, ERR_NOTEXTTOSEND, "PRIVMSG :Badly formed message");
         return;
     }
 
@@ -32,12 +32,12 @@ void Services::prvmsg(Client &client, std::vector<std::string> &params) {
         Channel *channel = server->getChannel(target);
 
         if (!channel) {
-            server->dmClient(client, 403, target + " :No such channel");
+            server->dmClient(client, ERR_NOSUCHCHANNEL, target + " :No such channel");
             return;
         }
 
         if (!channel->isMember(client)) {
-            server->dmClient(client, 442, target + " :You're not on that channel");
+            server->dmClient(client, ERR_NOTONCHANNEL, target + " :You're not on that channel");
             return;
         }
 
@@ -49,7 +49,7 @@ void Services::prvmsg(Client &client, std::vector<std::string> &params) {
         // Target is a user
         Client *target_client = server->getClientByNick(target);
         if (!target_client) {
-            server->dmClient(client, 401, target + " :No such nick/channel");
+            server->dmClient(client, ERR_NOSUCHNICK, target + " :No such nick/channel");
             return;
         }
 

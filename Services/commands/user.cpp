@@ -13,7 +13,7 @@ void Services::user(Client& client, std::vector<std::string>& params) {
     size_t params_size = params.size();
 
     if (params_size < 4) {
-        server->dmClient(client, 461, "USER :Not enough parameters");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "USER :Not enough parameters");
         return;
     }
 
@@ -21,7 +21,7 @@ void Services::user(Client& client, std::vector<std::string>& params) {
     std::string realname = params[3];
 
     if (realname[0] != ':') {
-        server->dmClient(client, 461, "USER :Badly formed realname");
+        server->dmClient(client, ERR_UNKNOWNCOMMAND, "USER :Badly formed realname");
         return;
     }
     
@@ -34,5 +34,5 @@ void Services::user(Client& client, std::vector<std::string>& params) {
     client.setUsername(username);
     client.setRealname(realname);
     client.setRegistered(true);
-    server->dmClient(client, 001, "Welcome to the IRC network, " + client.getNick() + "!" + client.getUsername() + "@localhost");
+    server->dmClient(client, RPL_WELCOME, "Welcome to the IRC network, " + client.getNick() + "!" + client.getUsername() + "@localhost");
 }

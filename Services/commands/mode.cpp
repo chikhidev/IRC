@@ -7,48 +7,42 @@
 void Services::mode(Client &client, std::vector<std::string> &params)
 {
     if (params.size() < 2) {
-        server->dmClient(client, 461, "MODE :Not enough parameters");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "MODE :Not enough parameters");
         return;
     }
 
     Channel *existing_channel = server->getChannel(params[0]);
     
     if (!existing_channel) {
-        server->dmClient(client, 403, params[0] + " :No such channel");
+        server->dmClient(client, ERR_NOSUCHCHANNEL, params[0] + " :No such channel");
         return;
     }
     
     int param_index = 2;
     std::string &modes = params[1];
 
-    if (modes.size() % 2 != 0) {
-        server->dmClient(client, 472, modes + " :is not a valid mode");
-        return;
-    }
-
-    const std::string valid_modes = "itkol";
-    for (size_t i = 0; i < modes.size() - 1; i += 2) {
-        if (modes[i] != '+' && modes[i] != '-') {
-            server->dmClient(client, 472, std::string() + modes[i] + modes[i + 1] + " :is not a valid mode");
-            return;
-        }
-
-        if (valid_modes.find(modes[i + 1]) == std::string::npos) {
-            server->dmClient(client, 472, std::string() + modes[i] + modes[i + 1] + " :is not a valid mode");
-            return;
-        }
-    }
-    
-
-
     if (!existing_channel->isOperator(client)) {
-        server->dmClient(client, 482, params[0] + " :You're not channel operator");
+        server->dmClient(client, ERR_CHANOPRIVSNEEDED, params[0] + " :You're not channel operator");
         return;
     }
 
-    for (size_t i = 0; i < modes.size(); i += 2) {
-        char chosen_mode = modes[i + 1];
-        bool state = (modes[i] == '+');
+    bool found_state = false;
+    bool state = true;
+    
+    for (size_t i = 0; i < modes.size(); i++) {
+        if (modes[i] == '+' || modes[i] == '-') {
+            found_state = true;
+            state = (modes[i] == '+');
+            continue;
+        }
+
+        if (!found_state) {
+            server->log("MODE: Missing + or - before modes");
+            server->dmClient(client, ERR_UNKNOWNMODE, std::string(1, modes[i]) + " :is not a valid mode");
+            return;
+        }
+
+        char chosen_mode = modes[i];
         std::string *param = NULL;
 
         if (param_index < (int)params.size()) {
@@ -56,11 +50,13 @@ void Services::mode(Client &client, std::vector<std::string> &params)
         }
 
         try {
+            server->log("Processing mode: " + std::string(1, chosen_mode) + " with state: " + (state ? "+" : "-"));
+
             switch (chosen_mode) {
                 case 'i':
                 case 't':
-                    existing_channel->updateMode(chosen_mode, params[1][0] == '+');
-                    existing_channel->broadcastToMembers(client, ":" + client.getNick() + " MODE " + existing_channel->getName() + " " + params[1]);
+                    existing_channel->updateMode(chosen_mode, state);
+                    existing_channel->broadcastToMembers(client, ":" + client.getNick() + " MODE " + existing_channel->getName() + " " + (state ? "+" : "-") + chosen_mode);
                     break;
                 case 'k':
                     param_index += handlePass(*existing_channel, client, state, param);
@@ -72,11 +68,11 @@ void Services::mode(Client &client, std::vector<std::string> &params)
                     param_index += handleOperator(*existing_channel, client, state, param);
                     break;
                 default:
-                    server->dmClient(client, 472, std::string(1, chosen_mode) + " :is not a valid mode");
+                    server->dmClient(client, ERR_UNKNOWNMODE, "'" + std::string(1, chosen_mode) + "' :is not a valid mode");
                     return;
             }
         } catch (const std::runtime_error &e) {
-            server->dmClient(client, 472, "MODE: " + std::string(e.what()));
+            server->dmClient(client, ERR_UNKNOWNMODE, "MODE: " + std::string(e.what()));
             return;
         }
     }
@@ -88,12 +84,12 @@ void Services::mode(Client &client, std::vector<std::string> &params)
 bool Services::handlePass(Channel &c, Client &client, bool state, std::string *param)
 {
     if (state && !param) {
-        server->dmClient(client, 461, "MODE :Not enough parameters");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "MODE :Not enough parameters");
         return false;
     }
 
     if (state && param->empty()) {
-        server->dmClient(client, 461, "MODE :Bad key");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "MODE :Bad key");
         return true;
     }
 
@@ -113,12 +109,12 @@ bool Services::handlePass(Channel &c, Client &client, bool state, std::string *p
 bool Services::handleMembersLimit(Channel &c, Client &client, bool state, std::string *param)
 {
     if (state && !param) {
-        server->dmClient(client, 461, "MODE :Not enough parameters");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "MODE :Not enough parameters");
         return false;
     }
 
     if (state && param->empty()) {
-        server->dmClient(client, 461, "MODE :Bad <limit>");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "MODE :Bad <limit>");
         return true;
     }
 
@@ -142,23 +138,28 @@ bool Services::handleMembersLimit(Channel &c, Client &client, bool state, std::s
 bool Services::handleOperator(Channel &c, Client &client, bool state, std::string *param)
 {
     if (!param) {
-        server->dmClient(client, 461, "MODE :Not enough parameters");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "MODE :Not enough parameters");
         return false;
     }
 
     if (param->empty()) {
-        server->dmClient(client, 461, "MODE :Erroneous nickname");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "MODE :Erroneous nickname");
         return state;
     }
 
     Client *target_client = server->getClientByNick(*param);
     if (!target_client) {
-        server->dmClient(client, 401, *param + " :No such nick/channel");
+        server->dmClient(client, ERR_NOSUCHNICK, *param + " :No such nick/channel");
+        return state;
+    }
+
+    if (c.isOperator(*target_client) && state) {
+        server->dmClient(client, ERR_USERONCHANNEL, *param + " :is already an operator");
         return state;
     }
 
     if (!c.isMember(*target_client)) {
-        server->dmClient(client, 441, *param + " :They aren't on that channel");
+        server->dmClient(client, ERR_USERONCHANNEL, *param + " :They aren't on that channel");
         return state;
     }
 
@@ -167,7 +168,7 @@ bool Services::handleOperator(Channel &c, Client &client, bool state, std::strin
         c.broadcastToMembers(client, ":" + client.getNick() + " MODE " + c.getName() + " +o " + *param);
     } else {
         c.removeOperator(*target_client);
-        server->dmClient(client, 324, c.getName() + " -o " + *param);
+        server->dmClient(client, ERR_CHANOPRIVSNEEDED, c.getName() + " -o " + *param);
         c.broadcastToMembers(client, ":" + client.getNick() + " MODE " + c.getName() + " -o " + *param);
     }
 

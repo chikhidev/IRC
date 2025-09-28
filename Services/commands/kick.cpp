@@ -7,7 +7,7 @@
 void Services::kick(Client &client, std::vector<std::string> &params)
 {
     if (params.size() < 2) {
-        server->dmClient(client, 461, "KICK :Not enough parameters");
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "KICK :Not enough parameters");
         return;
     }
 
@@ -29,7 +29,7 @@ void Services::kick(Client &client, std::vector<std::string> &params)
         reason = params[index + 2];
 
         if (reason.empty() || reason[0] != ':') {
-            server->dmClient(client, 461, "KICK :reason badly formatted");
+            server->dmClient(client, ERR_NOTEXTTOSEND, "KICK :reason badly formatted");
             return;
         }
 
@@ -43,18 +43,18 @@ void Services::kick(Client &client, std::vector<std::string> &params)
     server->log("KICK command: channel='" + channel_name + "' user='" + user_to_kick + "' reason='" + reason + "'");
 
     if (channel_name[0] != '#') {
-        server->dmClient(client, 403, channel_name + " :No such channel");
+        server->dmClient(client, ERR_NOSUCHCHANNEL, channel_name + " :No such channel");
         return;
     }
 
     Channel *channel = server->getChannel(channel_name);
     if (!channel) {
-        server->dmClient(client, 403, channel_name + " :No such channel");
+        server->dmClient(client, ERR_NOSUCHCHANNEL, channel_name + " :No such channel");
         return;
     }
 
     if (!channel->isOperator(client)) {
-        server->dmClient(client, 482, channel_name + " :You're not channel operator");
+        server->dmClient(client, ERR_CHANOPRIVSNEEDED, channel_name + " :You're not channel operator");
         return;
     }
 
@@ -64,17 +64,17 @@ void Services::kick(Client &client, std::vector<std::string> &params)
 
     Client *target_client = server->getClientByNick(user_to_kick);
     if (!target_client) {
-        server->dmClient(client, 401, user_to_kick + " :No such nick/channel");
+        server->dmClient(client, ERR_NOSUCHNICK, user_to_kick + " :No such nick/channel");
         return;
     }
 
     if (!channel->isMember(*target_client)) {
-        server->dmClient(client, 441, user_to_kick + " " + channel_name + " :They aren't on that channel");
+        server->dmClient(client, ERR_USERONCHANNEL, user_to_kick + " " + channel_name + " :They aren't on that channel");
         return;
     }
 
     if (target_client == &client) {
-        server->dmClient(client, 482, channel_name + " :You cannot kick yourself");
+        server->dmClient(client, ERR_CANNOTSENDTOCHAN, channel_name + " :You cannot kick yourself");
         return;
     }
 
@@ -84,7 +84,7 @@ void Services::kick(Client &client, std::vector<std::string> &params)
         
         channel->removeMember(*target_client);
     } catch (const std::exception &e) {
-        server->dmClient(client, 403, channel_name + e.what());
+        server->dmClient(client, ERR_NOSUCHCHANNEL, channel_name + " :" + e.what());
         return;
     }
 

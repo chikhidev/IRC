@@ -5,5 +5,5 @@
 void Services::whois(Client &client, std::vector<std::string> &params)
 {
     (void)(params); // to avoid unused parameter warning
-    server->dmClient(client, 311, client.getNick() + " localhost * :" + client.getRealname());
+    server->dmClient(client, RPL_WHOISUSER, client.getNick() + " localhost * :" + client.getRealname());
 }
