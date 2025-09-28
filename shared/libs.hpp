@@ -13,7 +13,6 @@
 #include <queue>
 #include <algorithm>
 #include <fcntl.h>
-#include <errno.h>
 #include <signal.h>
 
 #define MAX_CONNECTIONS 512
