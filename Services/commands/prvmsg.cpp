@@ -53,9 +53,8 @@ void Services::prvmsg(Client &client, std::vector<std::string> &params) {
             return;
         }
 
-        // Send the private message to the target client
-        // server->dmClient(target_client, 250, "PRIVMSG " + target + " :" + message);
-        client.sendMessage(*target_client, "PRIVMSG " + target + (message.empty() ? "" : " " + message));
+        // Ensure the trailing parameter is preceded by ':' so the message is delivered intact (e.g., CTCP/DCC frames)
+        client.sendMessage(*target_client, "PRIVMSG " + target + " :" + message);
         return;
     }
 }
