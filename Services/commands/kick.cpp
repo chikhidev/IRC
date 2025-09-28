@@ -21,6 +21,11 @@ void Services::kick(Client &client, std::vector<std::string> &params)
         index = 1;
     }
 
+    if (index == 1 && params.size() < 3) {
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "KICK :Not enough parameters");
+        return;
+    }
+
     std::string channel_name = params[index];
     std::string user_to_kick = params[index + 1];
     std::string reason;
