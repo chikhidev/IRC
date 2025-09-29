@@ -2,10 +2,9 @@
 #include "../Server/Server.hpp"
 #include "../Client/Client.hpp"
 
-
 /*
-* Set-up the services command map
-*/
+ * Set-up the services command map
+ */
 Services::Services(Server *srv) : server(srv)
 {
     command_map["PASS"] = &Services::pass;
@@ -25,34 +24,34 @@ Services::Services(Server *srv) : server(srv)
     command_map["WHOIS"] = &Services::whois;
 }
 
-
 Services::~Services() {}
 
 /*
-* Check if the client is authenticated before processing certain commands
-*/
+ * Check if the client is authenticated before processing certain commands
+ */
 bool Services::isAuth(Client &client, std::string &command)
 {
-    if (!server) {
+    if (!server)
+    {
         throw std::runtime_error("Server reference is null");
     }
 
     if (
-        command != "PASS" && command != "QUIT" && command != "CAP"
-        && !client.isAuthenticated())
+        command != "PASS" && command != "QUIT" && command != "CAP" && !client.isAuthenticated())
     {
-        server->dmClient(client, ERR_NOTREGISTERED, "You must be authenticated to use this command");
+        server->dmClient(client, ERR_NOTREGISTERED, ":You have not registered");
         return false;
     }
     return true;
 }
 
 /*
-* Check if the client is registered before processing certain commands
-*/
+ * Check if the client is registered before processing certain commands
+ */
 bool Services::isRegistered(Client &client, std::string &command)
 {
-    if (!server) {
+    if (!server)
+    {
         throw std::runtime_error("Server reference is null");
     }
 
@@ -62,12 +61,14 @@ bool Services::isRegistered(Client &client, std::string &command)
         command != "CAP" &&
         command != "QUIT")
     {
-        if (!client.isRegistered()) {
-            server->dmClient(client, ERR_NOTREGISTERED, "Not registered");
+        if (!client.isRegistered())
+        {
+            server->dmClient(client, ERR_NOTREGISTERED, ":You have not registered");
             return false;
         }
-        if (!client.hasNick()) {
-            server->dmClient(client, ERR_NONICKNAMEGIVEN, "No nickname given");
+        if (!client.hasNick())
+        {
+            server->dmClient(client, ERR_NONICKNAMEGIVEN, ":No nickname given");
             return false;
         }
     }
@@ -76,14 +77,17 @@ bool Services::isRegistered(Client &client, std::string &command)
 }
 
 /*
-* Params split by space
-*/
-std::vector<std::string> split_params(const std::string &params) {
+ * Params split by space
+ */
+std::vector<std::string> split_params(const std::string &params)
+{
     std::vector<std::string> result;
     std::istringstream iss(params);
     std::string token;
-    while (std::getline(iss, token, ' ')) {
-        if (!token.empty()) {
+    while (std::getline(iss, token, ' '))
+    {
+        if (!token.empty())
+        {
             result.push_back(token);
         }
     }
@@ -91,14 +95,18 @@ std::vector<std::string> split_params(const std::string &params) {
 }
 
 /*
-* Capture a command shot from a client
-*/
-std::string cmd_shot(int fd) {
+ * Capture a command shot from a client
+ */
+std::string cmd_shot(int fd)
+{
     char buffer[512] = {0};
     int readed_bytes = read(fd, buffer, 512);
-    if (readed_bytes < 0) {
+    if (readed_bytes < 0)
+    {
         throw std::runtime_error("Read error on fd " + glob::to_string(fd));
-    } else if (readed_bytes == 0) {
+    }
+    else if (readed_bytes == 0)
+    {
         // Connection closed by the client
         throw std::runtime_error("Client disconnected on fd " + glob::to_string(fd));
     }
@@ -107,16 +115,17 @@ std::string cmd_shot(int fd) {
 }
 
 /*
-* Strip trailing non-printable characters from a command string
-* and store them as the client's command terminators if not already set.
-* Read Client::setCommandTerminators() for more info
-*/
+ * Strip trailing non-printable characters from a command string
+ * and store them as the client's command terminators if not already set.
+ * Read Client::setCommandTerminators() for more info
+ */
 std::string stripTrailingTerminators(std::string &cmd, Client &client)
 {
     size_t end = cmd.size();
     std::string terminators;
 
-    while (end > 0 && (cmd[end - 1] == '\r' || cmd[end - 1] == '\n' || cmd[end - 1] == '\t')) {
+    while (end > 0 && (cmd[end - 1] == '\r' || cmd[end - 1] == '\n' || cmd[end - 1] == '\t'))
+    {
         --end;
     }
     terminators = cmd.substr(end);
@@ -139,9 +148,9 @@ std::string stripTrailingTerminators(std::string &cmd, Client &client)
 }
 
 /*
-* Process a single command line from a client
-* Returns true if processing should continue, false otherwise
-*/
+ * Process a single command line from a client
+ * Returns true if processing should continue, false otherwise
+ */
 bool Services::processCommandLine(Client &client, int client_fd, std::string &command_line)
 {
     std::string _cmd = stripTrailingTerminators(command_line, client);
@@ -155,7 +164,8 @@ bool Services::processCommandLine(Client &client, int client_fd, std::string &co
     std::string params;
     std::getline(iss, params);
 
-    if (!client.isConnected()) return false;
+    if (!client.isConnected())
+        return false;
 
     server->log("Received command from fd " + glob::to_string(client_fd) + ": " + command_line);
 
@@ -163,49 +173,57 @@ bool Services::processCommandLine(Client &client, int client_fd, std::string &co
     client.setIsPinged(false);
 
     std::vector<std::string> param_list = split_params(params);
-    std::map<std::string, 
-        void (Services::*)(Client&, std::vector<std::string>&)>
-        ::iterator it = command_map.find(command);
+    std::map<std::string,
+             void (Services::*)(Client &, std::vector<std::string> &)>::iterator it = command_map.find(command);
 
     if (it != command_map.end())
     {
-        if (!isAuth(client, command)) return false;
-        if (!isRegistered(client, command)) return false;
+        if (!isAuth(client, command))
+            return false;
+        if (!isRegistered(client, command))
+            return false;
 
-        try {
+        try
+        {
             (this->*(it->second))(client, param_list);
-        } catch (const std::exception &e) {
+        }
+        catch (const std::exception &e)
+        {
             server->log("Exception while processing command " + command + ": " + e.what());
         }
 
-        Client* existing_client = server->getClient(client_fd);
-        if (existing_client == NULL) return false;
-        
+        Client *existing_client = server->getClient(client_fd);
+        if (existing_client == NULL)
+            return false;
+
         existing_client->clearCommandStream();
         return true;
     }
 
     server->log("Unknown command: " + command);
-    Client* existing_client = server->getClient(client_fd);
-    if (existing_client == NULL) return false;
+    Client *existing_client = server->getClient(client_fd);
+    if (existing_client == NULL)
+        return false;
     server->dmClient(*existing_client, ERR_UNKNOWNCOMMAND, command + " :Unknown command");
     existing_client->clearCommandStream();
     return false;
 }
 
 /*
-* Handle incoming payload from a client
-* This function accumulates data until a full command is received
-* and then processes each command line individually.
-*/
+ * Handle incoming payload from a client
+ * This function accumulates data until a full command is received
+ * and then processes each command line individually.
+ */
 void Services::dealWithClient(int client_fd)
 {
-    if (!server) {
+    if (!server)
+    {
         throw std::runtime_error("Server reference is null");
     }
 
     Client *client = server->getClient(client_fd);
-    if (!client) {
+    if (!client)
+    {
         server->log("No client found for fd " + glob::to_string(client_fd));
         server->addToDeleteQueue(*client);
         return;
@@ -213,25 +231,30 @@ void Services::dealWithClient(int client_fd)
 
     std::string payload;
 
-    try {
+    try
+    {
         payload = cmd_shot(client_fd);
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception &e)
+    {
         server->log("Error reading from client fd " + glob::to_string(client_fd) + ": " + e.what());
         server->addToDeleteQueue(*client);
         return;
     }
 
-    if (payload.empty()) {
+    if (payload.empty())
+    {
         return;
     }
 
     std::stringstream &cmdStream = client->getCommandStream();
-    
+
     if (!payload.empty() && payload[payload.size() - 1] != '\n')
     {
         cmdStream << payload;
 
-        if (cmdStream.str().length() > MAX_COMMAND_LENGTH) {
+        if (cmdStream.str().length() > MAX_COMMAND_LENGTH)
+        {
             server->dmClient(*client, ERR_INPUTTOOLONG, "Command too long");
             client->clearCommandStream();
         }
@@ -250,42 +273,47 @@ void Services::dealWithClient(int client_fd)
         commands.push_back(line);
     }
 
-    for (size_t i = 0; i < commands.size(); ++i) {
-        if (processCommandLine(*client, client_fd, commands[i]) == false) {
-            return ;
-        }    
+    for (size_t i = 0; i < commands.size(); ++i)
+    {
+        if (processCommandLine(*client, client_fd, commands[i]) == false)
+        {
+            return;
+        }
     }
 }
 
 /*
-* Handle sleepy clients
-* This function checks if a client has been idle for too long
-* Two thresholds are used:
-* - PING_INTERVAL: if exceeded, a PING message is sent to the client if the client didn't send any command since PING_INTERVAL
-* - CLIENT_TIMEOUT: if exceeded, the client is disconnected due to inactivity
-*/
-void Services::dealWithSleepModeClient(int client_fd) {
+ * Handle sleepy clients
+ * This function checks if a client has been idle for too long
+ * Two thresholds are used:
+ * - PING_INTERVAL: if exceeded, a PING message is sent to the client if the client didn't send any command since PING_INTERVAL
+ * - CLIENT_TIMEOUT: if exceeded, the client is disconnected due to inactivity
+ */
+void Services::dealWithSleepModeClient(int client_fd)
+{
 
     Client *client = server->getClient(client_fd);
-    if (!client) {
+    if (!client)
+    {
         server->log("No client found for fd " + glob::to_string(client_fd));
         return;
     }
 
     size_t last_action = server->getDiffTime(client->getLastActiveTime());
 
-    if (last_action >= CLIENT_TIMEOUT) {
+    if (last_action >= CLIENT_TIMEOUT)
+    {
         server->log("Client " + glob::to_string(client_fd) + " timed out");
-        server->dmClient(*client,  STATUS_CLIENT_TIMEOUT, "ERROR :PING timeout:" + glob::to_string(CLIENT_TIMEOUT) + " seconds");
+        server->dmClient(*client, STATUS_CLIENT_TIMEOUT, "ERROR :PING timeout:" + glob::to_string(CLIENT_TIMEOUT) + " seconds");
         server->addToDeleteQueue(*client);
         return;
     }
 
-    if (last_action >= PING_INTERVAL && !client->isPinged()) {
+    if (last_action >= PING_INTERVAL && !client->isPinged())
+    {
         server->log("Client " + glob::to_string(client_fd) + " notify PING");
-        server->dmClient(*client,  STATUS_PING_INTERVAL, "PING :ircserv");
+        server->dmClient(*client, STATUS_PING_INTERVAL, "PING :ircserv");
         client->setIsPinged(true);
         return;
     }
 }
-

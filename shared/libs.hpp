@@ -25,7 +25,8 @@
 #define CLIENT_TIMEOUT 1500000
 #define EPOLL_TIMEOUT 50000
 
-namespace glob {
+namespace glob
+{
     std::string to_string(int);
     bool *server_running();
     void stop_running(int);

@@ -4,48 +4,57 @@
 #include "../../Channel/Channel.hpp"
 
 /*
-* Handle the PART command: <channel>
-*/
-void Services::part(Client &client, std::vector<std::string> &params) {
-    if (!server) {
+ * Handle the PART command: <channel>
+ */
+void Services::part(Client &client, std::vector<std::string> &params)
+{
+    if (!server)
+    {
         throw std::runtime_error("Server reference is null");
     }
 
-    if (params.size() < 1) {
-        server->dmClient(client, ERR_NEEDMOREPARAMS, "PART :Bad parameters");
+    if (params.size() < 1)
+    {
+        server->dmClient(client, ERR_NEEDMOREPARAMS, client.getNick() + " PART :Not enough parameters");
         return;
     }
 
     std::string channel_name = params[0];
-    if (channel_name[0] != '#') {
-        server->dmClient(client, ERR_NOSUCHCHANNEL, "PART :No such channel");
+    if (channel_name[0] != '#')
+    {
+        server->dmClient(client, ERR_NOSUCHCHANNEL, client.getNick() + " " + channel_name + " :No such channel");
         return;
     }
 
     std::string reason;
-    if (params.size() >= 2) {
+    if (params.size() >= 2)
+    {
         reason = params[1];
 
-        for (size_t i = 2; i < params.size(); ++i) {
+        for (size_t i = 2; i < params.size(); ++i)
+        {
             reason += " " + params[i];
         }
 
-        if (reason.empty() || reason[0] != ':') {
-            server->dmClient(client, ERR_NEEDMOREPARAMS, "PART :Bad parameters");
+        if (reason.empty() || reason[0] != ':')
+        {
+            server->dmClient(client, ERR_NEEDMOREPARAMS, ":Not enough parameters");
             return;
         }
     }
 
-    try {
+    try
+    {
         Channel *_channel = server->getChannel(channel_name);
-        if (!_channel) {
-            server->dmClient(client, ERR_NOSUCHCHANNEL, "PART :No such channel");
+        if (!_channel)
+        {
+            server->dmClient(client, ERR_NOSUCHCHANNEL, client.getNick() + " " + channel_name + " :No such channel");
             return;
         }
 
-
-        if (!_channel->isMember(client)) {
-            server->dmClient(client, ERR_NOTONCHANNEL, "PART :You're not on that channel");
+        if (!_channel->isMember(client))
+        {
+            server->dmClient(client, ERR_NOTONCHANNEL, channel_name + " :You're not on that channel");
             return;
         }
 
@@ -53,12 +62,14 @@ void Services::part(Client &client, std::vector<std::string> &params) {
 
         _channel->removeMember(client);
 
-        if (_channel->isEmpty()) {
+        if (_channel->isEmpty())
+        {
             server->log("Channel " + channel_name + " is empty. Removing it from server.");
             server->removeChannel(channel_name);
         }
-
-    } catch (const std::exception &e) {
-        server->dmClient(client, ERR_UNKNOWNERROR, "PART :" + std::string(e.what()));
+    }
+    catch (const std::exception &e)
+    {
+        server->dmClient(client, ERR_UNKNOWNERROR, ":Unknown error");
     }
 }

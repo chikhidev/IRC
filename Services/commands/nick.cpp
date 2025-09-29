@@ -3,23 +3,24 @@
 #include "../../Client/Client.hpp"
 
 /*
-* Handle the NICK command
-*/
+ * Handle the NICK command
+ */
 void Services::nick(Client &client, std::vector<std::string> &params)
 {
-    if (!server) {
+    if (!server)
+    {
         throw std::runtime_error("Server reference is null");
     }
 
     if (params.empty())
     {
-        server->dmClient(client, ERR_NONICKNAMEGIVEN, "NICK: No nickname given");
+        server->dmClient(client, ERR_NONICKNAMEGIVEN, ":No nickname given");
         return;
     }
-    
+
     if (params.size() > 1)
     {
-        server->dmClient(client, ERR_ERRONEUSNICKNAME, "NICK: Too many parameters");
+        server->dmClient(client, ERR_ERRONEUSNICKNAME, ":Erroneous nickname");
         return;
     }
 
@@ -27,7 +28,7 @@ void Services::nick(Client &client, std::vector<std::string> &params)
 
     if (nickname.length() > NICK_LIMIT)
     {
-        server->dmClient(client, ERR_ERRONEUSNICKNAME, "NICK: Erroneous nickname");
+        server->dmClient(client, ERR_ERRONEUSNICKNAME, ":Erroneous nickname");
         return;
     }
 
@@ -35,13 +36,13 @@ void Services::nick(Client &client, std::vector<std::string> &params)
     Client *existing_client = server->getClientByNick(params[0]);
     if (existing_client && existing_client != &client)
     {
-        server->dmClient(client, ERR_NICKNAMEINUSE, "NICK: Nickname is already in use");
+        server->dmClient(client, ERR_NICKNAMEINUSE, params[0] + " :Nickname is already in use");
         return;
     }
 
     server->removeUniqueNick(client.getNick());
     client.setNick(params[0]);
     server->addUniqueNick(params[0], client);
-    std::string response = "NICK: " + params[0];
-    server->dmClient(client, RPL_NEUTRAL, response);
+
+    // Send nick change confirmation - no reply needed for successful nick change
 }
