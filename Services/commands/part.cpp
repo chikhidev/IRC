@@ -11,38 +11,41 @@ void Services::part(Client &client, std::vector<std::string> &params) {
         throw std::runtime_error("Server reference is null");
     }
 
-    if (params.size() < 1 || params.size() > 2) {
-        server->dmClient(client, 461, "PART :Bad parameters");
+    if (params.size() < 1) {
+        server->dmClient(client, ERR_NEEDMOREPARAMS, "PART :Bad parameters");
         return;
     }
 
     std::string channel_name = params[0];
     if (channel_name[0] != '#') {
-        server->dmClient(client, 403, "PART :No such channel");
+        server->dmClient(client, ERR_NOSUCHCHANNEL, "PART :No such channel");
         return;
     }
 
     std::string reason;
-    if (params.size() == 2) {
+    if (params.size() >= 2) {
         reason = params[1];
+
+        for (size_t i = 2; i < params.size(); ++i) {
+            reason += " " + params[i];
+        }
+
         if (reason.empty() || reason[0] != ':') {
-            server->dmClient(client, 461, "PART :Bad parameters");
+            server->dmClient(client, ERR_NEEDMOREPARAMS, "PART :Bad parameters");
             return;
         }
     }
 
-
-
     try {
         Channel *_channel = server->getChannel(channel_name);
         if (!_channel) {
-            server->dmClient(client, 403, "PART :No such channel");
+            server->dmClient(client, ERR_NOSUCHCHANNEL, "PART :No such channel");
             return;
         }
 
 
         if (!_channel->isMember(client)) {
-            server->dmClient(client, 442, "PART :You're not on that channel");
+            server->dmClient(client, ERR_NOTONCHANNEL, "PART :You're not on that channel");
             return;
         }
 
@@ -56,6 +59,6 @@ void Services::part(Client &client, std::vector<std::string> &params) {
         }
 
     } catch (const std::exception &e) {
-        server->dmClient(client, 403, "PART :" + std::string(e.what()));
+        server->dmClient(client, ERR_UNKNOWNERROR, "PART :" + std::string(e.what()));
     }
 }

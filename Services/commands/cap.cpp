@@ -6,6 +6,6 @@
 
 void Services::cap(Client &client, std::vector<std::string> &params) {
     (void)params;
-    server->dmClient(client, 0, "CAP * LS :");
+    server->dmClient(client, RPL_NEUTRAL, "CAP * LS :");
 }
 

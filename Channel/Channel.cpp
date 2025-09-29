@@ -93,6 +93,12 @@ bool Channel::isMember(const Client &client) const {
 */
 bool Channel::isOperator(const Client &client) const {
     std::map<const std::string, Client*>::const_iterator it = operators.find(client.getNick());
+    if (it != operators.end()) {
+        server->log("Client " + client.getNick() + " is an operator of channel " + name);
+    }
+    if (it->second != &client) {
+        server->log("Client " + client.getNick() + " operator instance does not match");
+    }
     return it != operators.end() && it->second == &client;
 }
 
@@ -100,7 +106,8 @@ bool Channel::isOperator(const Client &client) const {
 * Add a client as an operator of the channel
 */
 void Channel::addOperator(Client &client) {
-    if (!isMember(client)) {
+    std::map<int, Client*>::iterator members_it = members.find(client.getFd());
+    if (members_it == members.end()) {
         throw std::runtime_error("Client is not a member of the channel");
     }
 
@@ -109,6 +116,8 @@ void Channel::addOperator(Client &client) {
         throw std::runtime_error("Client is already an operator");
     }
 
+    // switch
+    members.erase(members_it);
     operators[client.getNick()] = &client;
 }
 
@@ -121,6 +130,8 @@ void Channel::removeOperator(Client &client) {
         throw std::runtime_error("Client is not an operator");
     }
 
+    // switch
+    members[client.getFd()] = &client;
     operators.erase(it);
 }
 
@@ -136,7 +147,7 @@ void Channel::broadcastToMembers(Client &sender, const std::string &message) {
     // check if sender is a member
     if (!isMember(sender)) {
         // throw std::runtime_error("Not a member of the channel");
-        server->dmClient(sender, 442, name + " :You're not on that channel");
+        server->dmClient(sender, ERR_NOTONCHANNEL, name + " :You're not on that channel");
         return;
     }
 
@@ -175,8 +186,8 @@ void Channel::listMembers(Client &client) const {
         response += it->second->getNick() + " ";
     }
 
-    server->dmClient(client, 353, response);
-    server->dmClient(client, 366, name + " :End of /NAMES list.");
+    server->dmClient(client, RPL_NAMREPLY, response);
+    server->dmClient(client, RPL_ENDOFNAMES, name + " :End of /NAMES list.");
 }
 
 std::string Channel::getTopic() const {

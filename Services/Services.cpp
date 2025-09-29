@@ -22,6 +22,7 @@ Services::Services(Server *srv) : server(srv)
     command_map["INVITE"] = &Services::invite;
     command_map["PING"] = &Services::ping;
     command_map["CAP"] = &Services::cap;
+    command_map["WHOIS"] = &Services::whois;
 }
 
 
@@ -40,7 +41,7 @@ bool Services::isAuth(Client &client, std::string &command)
         command != "PASS" && command != "QUIT" && command != "CAP"
         && !client.isAuthenticated())
     {
-        server->dmClient(client, 451, "You must be authenticated to use this command");
+        server->dmClient(client, ERR_NOTREGISTERED, "You must be authenticated to use this command");
         return false;
     }
     return true;
@@ -62,11 +63,11 @@ bool Services::isRegistered(Client &client, std::string &command)
         command != "QUIT")
     {
         if (!client.isRegistered()) {
-            server->dmClient(client, 451, "Not registered");
+            server->dmClient(client, ERR_NOTREGISTERED, "Not registered");
             return false;
         }
         if (!client.hasNick()) {
-            server->dmClient(client, 431, "No nickname given");
+            server->dmClient(client, ERR_NONICKNAMEGIVEN, "No nickname given");
             return false;
         }
     }
@@ -187,7 +188,7 @@ bool Services::processCommandLine(Client &client, int client_fd, std::string &co
     server->log("Unknown command: " + command);
     Client* existing_client = server->getClient(client_fd);
     if (existing_client == NULL) return false;
-    server->dmClient(*existing_client, 421, command + " :Unknown command");
+    server->dmClient(*existing_client, ERR_UNKNOWNCOMMAND, command + " :Unknown command");
     existing_client->clearCommandStream();
     return false;
 }
@@ -231,7 +232,7 @@ void Services::dealWithClient(int client_fd)
         cmdStream << payload;
 
         if (cmdStream.str().length() > MAX_COMMAND_LENGTH) {
-            server->dmClient(*client, 414, "Command too long");
+            server->dmClient(*client, ERR_INPUTTOOLONG, "Command too long");
             client->clearCommandStream();
         }
 
@@ -275,14 +276,14 @@ void Services::dealWithSleepModeClient(int client_fd) {
 
     if (last_action >= CLIENT_TIMEOUT) {
         server->log("Client " + glob::to_string(client_fd) + " timed out");
-        server->dmClient(*client,  CLIENT_TIMEOUT, "ERROR :PING timeout:" + glob::to_string(CLIENT_TIMEOUT) + " seconds");
+        server->dmClient(*client,  STATUS_CLIENT_TIMEOUT, "ERROR :PING timeout:" + glob::to_string(CLIENT_TIMEOUT) + " seconds");
         server->addToDeleteQueue(*client);
         return;
     }
 
     if (last_action >= PING_INTERVAL && !client->isPinged()) {
         server->log("Client " + glob::to_string(client_fd) + " notify PING");
-        server->dmClient(*client,  PING_INTERVAL, "PING :ircserv");
+        server->dmClient(*client,  STATUS_PING_INTERVAL, "PING :ircserv");
         client->setIsPinged(true);
         return;
     }

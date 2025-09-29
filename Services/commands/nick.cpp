@@ -13,19 +13,21 @@ void Services::nick(Client &client, std::vector<std::string> &params)
 
     if (params.empty())
     {
-        server->dmClient(client, 431, "NICK: No nickname given");
+        server->dmClient(client, ERR_NONICKNAMEGIVEN, "NICK: No nickname given");
         return;
     }
     
     if (params.size() > 1)
     {
-        server->dmClient(client, 432, "NICK: Too many parameters");
+        server->dmClient(client, ERR_ERRONEUSNICKNAME, "NICK: Too many parameters");
         return;
     }
 
-    if (params[0].length() > NICK_LIMIT)
+    std::string nickname = params[0];
+
+    if (nickname.length() > NICK_LIMIT)
     {
-        server->dmClient(client, 432, "NICK: Erroneous nickname");
+        server->dmClient(client, ERR_ERRONEUSNICKNAME, "NICK: Erroneous nickname");
         return;
     }
 
@@ -33,7 +35,7 @@ void Services::nick(Client &client, std::vector<std::string> &params)
     Client *existing_client = server->getClientByNick(params[0]);
     if (existing_client && existing_client != &client)
     {
-        server->dmClient(client, 433, "NICK: Nickname is already in use");
+        server->dmClient(client, ERR_NICKNAMEINUSE, "NICK: Nickname is already in use");
         return;
     }
 
@@ -41,5 +43,5 @@ void Services::nick(Client &client, std::vector<std::string> &params)
     client.setNick(params[0]);
     server->addUniqueNick(params[0], client);
     std::string response = "NICK: " + params[0];
-    server->dmClient(client, 0, response);
+    server->dmClient(client, RPL_NEUTRAL, response);
 }
