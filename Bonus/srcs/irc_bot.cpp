@@ -26,12 +26,16 @@ IrcBot::IrcBot(std::string host, std::string port, const std::vector<std::string
 
 	srand(static_cast<unsigned int>(time(NULL)));
 
-	load_file("./additionals/quotes.txt", _quotes);
-	load_file("./additionals/jokes.txt", _jokes);
+	load_file("Bonus/additionals/quotes.txt", _quotes);
+	load_file("Bonus/additionals/jokes.txt", _jokes);
 }
 
 IrcBot::~IrcBot()
 {
+	if (_socket_fd != -1)
+	{
+		close(_socket_fd);
+	}
 }
 
 void IrcBot::bot_connect()
@@ -222,6 +226,8 @@ bool IrcBot::tick()
 	int sel = select(_socket_fd + 1, &readfds, NULL, NULL, &tv);
 	if (sel < 0)
 	{
+		if (errno == EINTR)
+			return true; // interrupted by signal, let caller decide
 		close(_socket_fd);
 		on_disconnected();
 		throw std::runtime_error(strerror(errno));

@@ -220,7 +220,8 @@ void Client::sendMessage(Client& receiver, const std::string& message) {
         throw std::runtime_error("Server reference is null");
     }
 
-    std::string formatted_client = nickname + "!" + username + "@localhost";
+    // IRC messages must start with a ':' prefix. Adding it fixes CTCP/DCC parsing on clients.
+    std::string formatted_client = ":" + nickname + "!" + username + "@localhost";
 
     std::string formatted_message = formatted_client + " " + message + getCommandTerminators();
     server->sendMessage(receiver, formatted_message);
