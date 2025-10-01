@@ -184,36 +184,6 @@ bool Client::isConnected() const
 }
 
 /*
- * Set the command terminators, to be adaptive with different clients
- * Default to \r\n if not set
- */
-void Client::setCommandTerminators(const std::string &terminators)
-{
-    command_terminators = terminators;
-}
-
-/*
- * Get the command terminators: to be adaptive with different clients
- * Default to \r\n if not set
- */
-std::string Client::getCommandTerminators() const
-{
-    if (command_terminators.empty())
-    {
-        return "\r\n";
-    }
-    return command_terminators;
-}
-
-/*
- * Check if the client has sent his first command
- */
-bool Client::hasSentFirstCommand() const
-{
-    return _sent_first_command;
-}
-
-/*
  * Set the client first command status
  */
 void Client::setSentFirstCommand()
@@ -231,16 +201,11 @@ void Client::sendMessage(Client &receiver, const std::string &message)
         throw std::runtime_error("Server reference is null");
     }
 
-    // IRC messages must start with a ':' prefix. Adding it fixes CTCP/DCC parsing on clients.
     std::string formatted_client = ":" + nickname + "!" + username + "@localhost";
 
     std::string formatted_message = formatted_client + " " + message;
 
-    // Ensure message ends with CRLF
-    if (formatted_message.find("\r\n") == std::string::npos)
-    {
-        formatted_message += "\r\n";
-    }
+    formatted_message += "\r\n";
 
     server->sendMessage(receiver, formatted_message);
 }
