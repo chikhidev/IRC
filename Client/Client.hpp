@@ -18,7 +18,6 @@ class Client {
     bool _isAuthenticated;
     bool _isRegistered;
     bool _sent_first_command;
-    std::string command_terminators;
     bool is_pinged;
     std::vector<std::string> joined_channels;
     std::stringstream command_buffer;
@@ -36,7 +35,6 @@ public:
     std::string getNick() const;
     std::string getUsername() const;
     std::string getRealname() const;
-    std::string getCommandTerminators() const;
     
     void setAddr(sockaddr_in);
     void setAddrLen(socklen_t);
@@ -47,7 +45,6 @@ public:
     void setUsername(const std::string &);
     void setRealname(const std::string &);
     void disconnect();
-    void setCommandTerminators(const std::string &);
     void setSentFirstCommand();
     void sendMessage(Client&, const std::string&);
     void addToJoinedChannels(const std::string&);

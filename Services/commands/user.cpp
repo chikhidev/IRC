@@ -40,6 +40,5 @@ void Services::user(Client &client, std::vector<std::string> &params)
     client.setRealname(realname);
     client.setRegistered(true);
 
-    // Send proper IRC welcome message (001)
     server->dmClient(client, RPL_WELCOME, ":Welcome to the IRC network, " + client.getNick() + "!" + client.getUsername() + "@localhost");
 }

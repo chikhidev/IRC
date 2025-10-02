@@ -34,7 +34,6 @@ void Services::pass(Client &client, std::vector<std::string> &params)
     if (server->isPasswordMatching(password))
     {
         client.setAuthenticated(true);
-        // Don't send welcome message here, wait for USER command completion
         return;
     }
 

@@ -115,33 +115,14 @@ std::string cmd_shot(int fd)
 }
 
 /*
- * Strip trailing non-printable characters from a command string
- * and store them as the client's command terminators if not already set.
- * Read Client::setCommandTerminators() for more info
+ * Strip trailing \r and \n from a command line
  */
-std::string stripTrailingTerminators(std::string &cmd, Client &client)
+std::string stripTrailingTerminators(std::string &cmd)
 {
-    size_t end = cmd.size();
-    std::string terminators;
-
-    while (end > 0 && (cmd[end - 1] == '\r' || cmd[end - 1] == '\n' || cmd[end - 1] == '\t'))
+    size_t end = cmd.find_last_not_of("\r\n");
+    if (end != std::string::npos)
     {
-        --end;
-    }
-    terminators = cmd.substr(end);
-
-    if (terminators.empty())
-        terminators = "\n";
-
-    if (terminators[terminators.size() - 1] != '\n')
-        terminators += '\n';
-
-    cmd.erase(end);
-
-    if (!client.hasSentFirstCommand())
-    {
-        client.setCommandTerminators(terminators);
-        client.setSentFirstCommand();
+        cmd.erase(end + 1);
     }
 
     return cmd;
@@ -153,7 +134,7 @@ std::string stripTrailingTerminators(std::string &cmd, Client &client)
  */
 bool Services::processCommandLine(Client &client, int client_fd, std::string &command_line)
 {
-    std::string _cmd = stripTrailingTerminators(command_line, client);
+    std::string _cmd = stripTrailingTerminators(command_line);
 
     if (_cmd.empty())
         return true;

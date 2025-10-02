@@ -95,15 +95,6 @@ Server::~Server()
 }
 
 /*
- * Stops the server
- */
-void Server::stop(int signal)
-{
-    *glob::server_running() = false;
-    log("Server stoped with signal: " + glob::to_string(signal));
-}
-
-/*
  * Force add non-blocking mode to a given file descriptor
  */
 void Server::makeNonBlocking(int fd)
@@ -414,13 +405,7 @@ void Server::dmClient(Client &client, int code, const std::string &message)
 
     response += (client.hasNick() ? client.getNick() : "*");
 
-    response += " " + message;
-
-    // Ensure message ends with CRLF
-    if (response.find("\r\n") == std::string::npos)
-    {
-        response += "\r\n";
-    }
+    response += " " + message + "\r\n";
 
     this->sendMessage(client, response);
 }
