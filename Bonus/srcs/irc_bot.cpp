@@ -283,20 +283,36 @@ bool IrcBot::tick()
 	if (chan.empty())
 		return true;
 
-	if (std::find(_channels.begin(), _channels.end(), chan) == _channels.end())
+	// Determine whether the incoming PRIVMSG is directed to a channel we joined or
+	// directly to the bot (DM). When it is a DM we need the sender nick so we can
+	// reply back to them instead of echoing to ourselves.
+	std::string sender;
+	if (!msg.empty() && msg[0] == ':')
+	{
+		size_t bangPos = msg.find('!');
+		if (bangPos != std::string::npos)
+			sender = msg.substr(1, bangPos - 1);
+	}
+	bool is_dm = (chan == BOT_NAME);
+
+	// Ignore messages not directed to channels we joined and not DM-ing us.
+	if (!is_dm && std::find(_channels.begin(), _channels.end(), chan) == _channels.end())
 		return true;
 
+	// The target we should use when responding: channel name or sender nick for DM.
+	std::string reply_target = is_dm ? sender : chan;
+
 	if (msg.find("!quote") != std::string::npos)
-		send_random_quote(chan);
+		send_random_quote(reply_target);
 	else if (msg.find("!joke") != std::string::npos)
-		send_random_joke(chan);
-	else if (msg.find("!start") != std::string::npos)
-		start_timer(chan);
-	else if (msg.find("!pause") != std::string::npos)
-		toggle_pause(chan);
-	else if (msg.find("!status") != std::string::npos)
-		report_status(chan);
+		send_random_joke(reply_target);
+	else if (!is_dm && msg.find("!start") != std::string::npos)
+		start_timer(reply_target);
+	else if (!is_dm && msg.find("!pause") != std::string::npos)
+		toggle_pause(reply_target);
+	else if (!is_dm && msg.find("!status") != std::string::npos)
+		report_status(reply_target);
 	else if (msg.find("!help") != std::string::npos)
-		send_help(chan);
+		send_help(reply_target);
 	return true;
 }
