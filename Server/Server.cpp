@@ -260,6 +260,21 @@ void Server::removeUniqueNick(const std::string &nick)
 }
 
 /*
+ * Update client nickname in all channels the client is a member of
+ */
+void Server::updateClientNickInAllChannels(const std::string &old_nick, const std::string &new_nick, Client &client)
+{
+    for (std::map<std::string, Channel *>::iterator it = channels.begin(); it != channels.end(); ++it)
+    {
+        Channel *channel = it->second;
+        if (channel)
+        {
+            channel->updateClientNick(old_nick, new_nick, client);
+        }
+    }
+}
+
+/*
  * Create a new client and add it to the clients map
  */
 void Server::createClient()
@@ -386,6 +401,21 @@ void Server::sendToAllClients(const std::string &message)
     {
         int client_fd = it->first;
         if (send(client_fd, prefixed_message.c_str(), prefixed_message.length(), 0) < 0)
+        {
+            log("Failed to send message to fd " + glob::to_string(client_fd));
+        }
+    }
+}
+
+/*
+ * Broadcast a message to all clients WITHOUT adding server prefix (for client actions like NICK change)
+ */
+void Server::broadcastToAllClients(const std::string &message)
+{
+    for (std::map<int, Client *>::iterator it = clients.begin(); it != clients.end(); ++it)
+    {
+        int client_fd = it->first;
+        if (send(client_fd, message.c_str(), message.length(), 0) < 0)
         {
             log("Failed to send message to fd " + glob::to_string(client_fd));
         }

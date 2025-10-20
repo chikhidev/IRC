@@ -325,3 +325,11 @@ void Client::setIsPinged(bool state)
 {
     is_pinged = state;
 }
+
+/*
+ * Get joined channels list
+ */
+std::vector<std::string> Client::getJoinedChannels() const
+{
+    return joined_channels;
+}

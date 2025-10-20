@@ -6,20 +6,18 @@
 class Server;
 class Client;
 
-class Channel {
+class Channel
+{
     Server *server;
     std::string name;
-    std::map<int, Client*> members;
+    std::map<int, Client *> members;
     std::string topic;
-    std::map<std::string, Client*> operators;
+    std::map<std::string, Client *> operators;
     std::map<char, bool> modes;
     std::string password;
     size_t user_limit;
-    std::map<std::string, Client*> invited;
+    std::map<std::string, Client *> invited;
 
-
-
-    
     void initModes();
 
 public:
@@ -31,11 +29,12 @@ public:
     std::string getTopic() const;
 
     void setTopic(const std::string &);
-    
+
     void addMember(Client &);
     void removeMember(Client &);
     bool isMember(const Client &) const;
     bool isOperator(const Client &) const;
+    void updateClientNick(const std::string &old_nick, const std::string &new_nick, Client &client);
 
     void broadcastToMembers(Client &, const std::string &);
     void listMembers(Client &) const;

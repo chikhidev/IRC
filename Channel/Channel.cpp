@@ -115,6 +115,28 @@ bool Channel::isOperator(const Client &client) const
 }
 
 /*
+ * Update client nickname in channel maps (operators and invited)
+ */
+void Channel::updateClientNick(const std::string &old_nick, const std::string &new_nick, Client &client)
+{
+    // Update operators map if client is an operator
+    std::map<std::string, Client *>::iterator op_it = operators.find(old_nick);
+    if (op_it != operators.end() && op_it->second == &client)
+    {
+        operators.erase(op_it);
+        operators[new_nick] = &client;
+    }
+
+    // Update invited map if client is invited
+    std::map<std::string, Client *>::iterator inv_it = invited.find(old_nick);
+    if (inv_it != invited.end() && inv_it->second == &client)
+    {
+        invited.erase(inv_it);
+        invited[new_nick] = &client;
+    }
+}
+
+/*
  * Add a client as an operator of the channel
  */
 void Channel::addOperator(Client &client)

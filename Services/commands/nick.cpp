@@ -45,6 +45,12 @@ void Services::nick(Client &client, std::vector<std::string> &params)
     client.setNick(nickname);
     server->addUniqueNick(nickname, client);
 
-    // Send NICK change notification to the client
-    server->sendMessage(client, ":" + old_nick + "!" + client.getUsername() + "@localhost NICK " + nickname + "\r\n");
+    // Update client nickname in all channels they are a member of
+    server->updateClientNickInAllChannels(old_nick, nickname, client);
+
+    // Create NICK change message without server prefix
+    std::string nick_change_msg = ":" + old_nick + "!" + client.getUsername() + "@localhost NICK " + nickname + "\r\n";
+
+    // Broadcast the NICK change to all connected clients
+    server->broadcastToAllClients(nick_change_msg);
 }

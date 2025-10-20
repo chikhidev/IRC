@@ -48,6 +48,7 @@ public:
     void setSentFirstCommand();
     void sendMessage(Client&, const std::string&);
     void addToJoinedChannels(const std::string&);
+    std::vector<std::string> getJoinedChannels() const;
     void removeFromJoinedChannels(const std::string&);
     void quitAllChannels();
 
