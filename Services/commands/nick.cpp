@@ -41,6 +41,10 @@ void Services::nick(Client &client, std::vector<std::string> &params)
     }
 
     server->removeUniqueNick(client.getNick());
+    std::string old_nick = client.getNick();
     client.setNick(nickname);
     server->addUniqueNick(nickname, client);
+
+    // Send NICK change notification to the client
+    server->sendMessage(client, ":" + old_nick + "!" + client.getUsername() + "@localhost NICK " + nickname + "\r\n");
 }
