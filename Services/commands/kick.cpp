@@ -48,6 +48,8 @@ void Services::kick(Client &client, std::vector<std::string> &params)
         }
     }
 
+    reason.erase(0, 1);
+
     // debug:
     server->log("KICK command: channel='" + channel_name + "' user='" + user_to_kick + "' reason='" + reason + "'");
 
@@ -68,11 +70,6 @@ void Services::kick(Client &client, std::vector<std::string> &params)
     {
         server->dmClient(client, ERR_CHANOPRIVSNEEDED, channel_name + " :You're not channel operator");
         return;
-    }
-
-    if (user_to_kick[0] == ':')
-    {
-        user_to_kick.erase(0, 1);
     }
 
     Client *target_client = server->getClientByNick(user_to_kick);
@@ -96,7 +93,7 @@ void Services::kick(Client &client, std::vector<std::string> &params)
 
     try
     {
-        std::string kick_msg = "KICK " + channel_name + " " + user_to_kick + (reason.empty() ? "" : " " + reason);
+        std::string kick_msg = "KICK " + channel_name + " " + user_to_kick + (reason.empty() ? "" : " :" + reason);
         channel->broadcastToMembers(client, kick_msg);
 
         // Send the kick message to the operator who performed the kick

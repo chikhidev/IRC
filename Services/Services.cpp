@@ -21,7 +21,7 @@ Services::Services(Server *srv) : server(srv)
     command_map["INVITE"] = &Services::invite;
     command_map["PING"] = &Services::ping;
     command_map["CAP"] = &Services::cap;
-    command_map["WHOIS"] = &Services::whois;
+    command_map["WHO"] = &Services::whois;
 }
 
 Services::~Services() {}

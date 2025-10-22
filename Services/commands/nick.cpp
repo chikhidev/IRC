@@ -45,12 +45,18 @@ void Services::nick(Client &client, std::vector<std::string> &params)
     client.setNick(nickname);
     server->addUniqueNick(nickname, client);
 
-    // Update client nickname in all channels they are a member of
     server->updateClientNickInAllChannels(old_nick, nickname, client);
+    
+    if (old_nick.empty())
+        old_nick = nickname;
 
-    // Create NICK change message without server prefix
     std::string nick_change_msg = ":" + old_nick + "!" + client.getUsername() + "@localhost NICK " + nickname + "\r\n";
 
-    // Broadcast the NICK change to all connected clients
     server->broadcastToAllClients(nick_change_msg);
+
+    if (!client.isRegistered() && !client.getUsername().empty())
+    {
+        client.setRegistered(true);
+        server->dmClient(client, RPL_WELCOME, ":Welcome to the IRC network, " + client.getNick() + "!" + client.getUsername() + "@localhost");
+    }
 }
