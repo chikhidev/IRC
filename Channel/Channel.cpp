@@ -192,7 +192,7 @@ void Channel::broadcastToMembers(Client &sender, const std::string &message)
         return;
     }
 
-    // send to operators
+    // send to all operators (except sender to avoid duplicates)
     for (std::map<const std::string, Client *>::iterator it = operators.begin(); it != operators.end(); ++it)
     {
         if (it->second->getFd() != sender.getFd())
@@ -201,7 +201,7 @@ void Channel::broadcastToMembers(Client &sender, const std::string &message)
         }
     }
 
-    // send message to all members except sender
+    // send message to all members (except sender to avoid duplicates)
     for (std::map<int, Client *>::iterator it = members.begin(); it != members.end(); ++it)
     {
         if (it->first != sender.getFd())

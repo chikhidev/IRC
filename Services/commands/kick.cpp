@@ -99,6 +99,9 @@ void Services::kick(Client &client, std::vector<std::string> &params)
         std::string kick_msg = "KICK " + channel_name + " " + user_to_kick + (reason.empty() ? "" : " " + reason);
         channel->broadcastToMembers(client, kick_msg);
 
+        // Send the kick message to the operator who performed the kick
+        server->sendMessage(client, ":" + client.getNick() + "!" + client.getUsername() + "@localhost " + kick_msg + "\r\n");
+
         channel->removeMember(*target_client);
     }
     catch (const std::exception &e)

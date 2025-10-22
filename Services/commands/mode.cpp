@@ -65,7 +65,11 @@ void Services::mode(Client &client, std::vector<std::string> &params)
             case 'i':
             case 't':
                 existing_channel->updateMode(chosen_mode, state);
-                existing_channel->broadcastToMembers(client, "MODE " + existing_channel->getName() + " " + (state ? "+" : "-") + chosen_mode);
+                {
+                    std::string mode_msg = "MODE " + existing_channel->getName() + " " + (state ? "+" : "-") + chosen_mode;
+                    existing_channel->broadcastToMembers(client, mode_msg);
+                    server->sendMessage(client, ":" + client.getNick() + "!" + client.getUsername() + "@localhost " + mode_msg + "\r\n");
+                }
                 break;
             case 'k':
                 param_index += handlePass(*existing_channel, client, state, param);
@@ -112,8 +116,14 @@ bool Services::handlePass(Channel &c, Client &client, bool state, std::string *p
     else
         c.updatePassword(*param);
 
-    std::string mode_change = ":" + client.getNick() + " MODE " + c.getName() + " " + (state ? "+k" : "-k");
+    std::string mode_change;
+    if (state)
+        mode_change = "MODE " + c.getName() + " +k " + *param;
+    else
+        mode_change = "MODE " + c.getName() + " -k";
+
     c.broadcastToMembers(client, mode_change);
+    server->sendMessage(client, ":" + client.getNick() + "!" + client.getUsername() + "@localhost " + mode_change + "\r\n");
 
     return state;
 }
@@ -140,12 +150,16 @@ bool Services::handleMembersLimit(Channel &c, Client &client, bool state, std::s
     {
         int limit = std::atoi(param->c_str());
         c.updateUserLimit(limit);
-        c.broadcastToMembers(client, "MODE " + c.getName() + " +l " + *param);
+        std::string limit_msg = "MODE " + c.getName() + " +l " + *param;
+        c.broadcastToMembers(client, limit_msg);
+        server->sendMessage(client, ":" + client.getNick() + "!" + client.getUsername() + "@localhost " + limit_msg + "\r\n");
     }
     else
     {
         c.updateUserLimit(0);
-        c.broadcastToMembers(client, "MODE " + c.getName() + " -l");
+        std::string limit_msg = "MODE " + c.getName() + " -l";
+        c.broadcastToMembers(client, limit_msg);
+        server->sendMessage(client, ":" + client.getNick() + "!" + client.getUsername() + "@localhost " + limit_msg + "\r\n");
     }
 
     return state;
@@ -189,13 +203,17 @@ bool Services::handleOperator(Channel &c, Client &client, bool state, std::strin
     if (state)
     {
         c.addOperator(*target_client);
-        c.broadcastToMembers(client, "MODE " + c.getName() + " +o " + *param);
+        std::string op_msg = "MODE " + c.getName() + " +o " + *param;
+        c.broadcastToMembers(client, op_msg);
+        server->sendMessage(client, ":" + client.getNick() + "!" + client.getUsername() + "@localhost " + op_msg + "\r\n");
     }
     else
     {
         c.removeOperator(*target_client);
+        std::string deop_msg = "MODE " + c.getName() + " -o " + *param;
         server->dmClient(client, ERR_CHANOPRIVSNEEDED, c.getName() + " -o " + *param);
-        c.broadcastToMembers(client, "MODE " + c.getName() + " -o " + *param);
+        c.broadcastToMembers(client, deop_msg);
+        server->sendMessage(client, ":" + client.getNick() + "!" + client.getUsername() + "@localhost " + deop_msg + "\r\n");
     }
 
     return state;
